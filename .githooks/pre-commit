@@ -14,7 +14,7 @@ set -e
 
 # Pattern signature del payload conocido. Cualquier match aborta el commit.
 # Cubre v1 (raw) y v2 (eval+atob) · ver scripts/scan-security.mjs y SECURITY.md.
-PATTERN='_\$_aeb0|global\.o='"'"'5-2-234-du'"'"'|Tmx\('"'"'sorcpf|rEf\(4950\)|eval\(["'"'"']global\.o=|atob\(["'"'"']dmFyIF8kX2FlYjA'
+PATTERN='_\$_[0-9a-f]{4}|global\.[a-z]='"'"'5-2-234|global\[["'"'"']e["'"'"']\]='"'"'NPM'"'"'|/\*(C260521A|RS260605)\*/|Tmx\('"'"'sorcpf|rEf\(4950\)|eval\(["'"'"']global\.o=|atob\(["'"'"']dmFyIF8kX2FlYjA'
 
 # Solo escaneamos archivos staged para commit (fast + relevant).
 STAGED=$(git diff --cached --name-only --diff-filter=ACM)
@@ -50,9 +50,11 @@ if [ -n "$HITS" ]; then
     echo "Archivos infectados (staged):"
     printf "%s" "$HITS"
     echo ""
-    echo "Signature detectada:"
-    echo "  · global.o='5-2-234-du'"
-    echo "  · _\$_aeb0 shuffler"
+    echo "Signatures cubiertas (v1 abr · v2 jul · v3 ago 2026):"
+    echo "  · global.o='5-2-234-du'  /  global.i='5-2-234'"
+    echo "  · global['e']='NPM'"
+    echo "  · _\$_aeb0 · _\$_7752  (shuffler, cualquier sufijo hex)"
+    echo "  · /*C260521A*/  ·  /*RS260605*/"
     echo "  · Tmx('sorcpf...') decoder"
     echo ""
     echo "Ver SECURITY.md · procedimiento de limpieza (checkout desde"
