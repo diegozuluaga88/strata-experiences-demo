@@ -486,19 +486,20 @@ export const DEMO_PROFILES: DemoProfile[] = [
     // ─── TOUR PROFILES (6) · CSV `Profile(s)` consumers of shared modules ──
     {
         id: 'inbound-outbound',
-        title: 'Inbound / Outbound Order Flow',
-        // F78.l · Diego 2026-08-18 · rebrand default POV a Dealer · el demo
-        // se presenta a un dealer client · antes decía "Manufacturer Indigo"
-        // en varias secciones del navbar · confusión de perspectiva.
-        subtitle: 'Dealer Cobalt · Inbound RFQ / Outbound Ack · Dealer ↔ Manufacturer',
-        name: 'Dealer Cobalt',
-        companyName: 'Dealer Cobalt',
-        description: 'Dealer-side order flow · inbound RFQ + PO · outbound quote + ack + shipping + invoice · 12 steps · 2 flows',
+        // F78.m · Diego 2026-08-18 · rebrand a feature-name en vez de dealer
+        // alias fake ("Dealer Cobalt" / "Manufacturer Indigo" era codename
+        // interno). El demo es una capability showcase · no tiene client
+        // story puntual · el label debe describir la capability.
+        title: 'Transaction Management',
+        subtitle: 'Inbound RFQ / Outbound Ack · Dealer ↔ Manufacturer transaction flow',
+        name: 'Transaction Management',
+        companyName: 'Transaction Management',
+        description: 'End-to-end transaction management · inbound RFQ + PO · outbound quote + ack + shipping + invoice · 12 steps · 2 flows · presented from the dealer POV by default (manufacturer POV available in the role switcher).',
         icon: '📦',
         experienceLabel: 'Dealer Experience',
         experienceKind: 'tour-profile',
         maturity: 'demo',
-        sourceLabel: 'Dealer Cobalt · standalone tour (dealer↔manufacturer)',
+        sourceLabel: 'Transaction Management · dealer ↔ manufacturer capability showcase',
         // F78.l · Diego 2026-08-18 · promoted al top del standalone list
         // (was 2026-07-27) · queda como primer standalone demo visible.
         lastUpdated: '2026-08-18',
