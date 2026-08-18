@@ -40,7 +40,8 @@ export const TENANT_ALIASES = {
     acme:               { name: 'Dealer Rust',          short: 'DR',  role: 'furniture dealer' },
     ops:                { name: 'Dealer Ember',         short: 'DE',  role: 'financial-control dealer' },
     crm:                { name: 'Strata CRM',           short: 'CRM', role: 'CRM standalone' },
-    'inbound-outbound': { name: 'Manufacturer Indigo',  short: 'MI',  role: 'furniture manufacturer' },
+    // F78.n · Diego 2026-08-18 · capability showcase · no fake dealer alias.
+    'inbound-outbound': { name: 'Transaction Management', short: 'TM',  role: 'dealer ↔ manufacturer transaction flow' },
 } as const;
 
 export type TenantId = keyof typeof TENANT_ALIASES;
