@@ -256,7 +256,7 @@ export default function ExperienceSwitcher({
                   <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider px-1 mb-1.5">
                     Published products
                   </p>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-col gap-2">
                     {expertHubHead && productionTab({
                       profile: expertHubHead,
                       childCount: expertHubChildCount,
