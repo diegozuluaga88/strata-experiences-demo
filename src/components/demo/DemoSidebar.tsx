@@ -246,8 +246,15 @@ export default function DemoSidebar() {
     };
 
     if (!isDemoActive) {
-        // Inbound | Outbound profile has no guided flow — hide the FAB entirely (P25)
-        if (activeProfile.id === 'inbound-outbound') return null;
+        // Hide the Demo FAB entirely on profiles that don't have a guided
+        // tour flow · Inbound|Outbound (P25) + F78.i · production experiences
+        // Expert Hub + Quote Converter (Diego 2026-08-18 · son apps prod
+        // renderizadas directamente · no tienen steps).
+        if (
+            activeProfile.id === 'inbound-outbound' ||
+            activeProfile.id === 'expert-hub' ||
+            activeProfile.id === 'quote-converter'
+        ) return null;
         return (
             <div className="fixed bottom-6 right-6 z-50">
                 <button
