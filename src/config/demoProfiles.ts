@@ -613,7 +613,10 @@ export const DEMO_PROFILES: DemoProfile[] = [
         maturity: 'demo',
         parentExperience: 'expert-hub',
         sourceLabel: 'COI · Expert Hub tour (email → kanban → hub → CRM)',
-        lastUpdated: '2026-07-29',
+        // F78.k · Diego 2026-08-18 · backdated para que quede al final del
+        // standalone list · es un auto-play tour (hideChrome+autoStart) que
+        // arranca sin controles visibles · puede confundir · queda demoted.
+        lastUpdated: '2026-01-15',
         // F44.a · Diego 2026-07-29 · el EmailSimulation step 1.1 gatea autoplay
         // en `isDemoActive === true`. Sin autoStart, el flow se congela en la
         // vista de email · no dispara AI Processing Modal · no avanza a Kanban.
@@ -647,7 +650,9 @@ export const DEMO_PROFILES: DemoProfile[] = [
         maturity: 'demo',
         parentExperience: 'expert-hub',
         sourceLabel: 'Acme · Expert Hub tour (COI legacy sin CRM)',
-        lastUpdated: '2026-07-29',
+        // F78.k · Diego 2026-08-18 · ver COI arriba · mismo motivo
+        // (hideChrome + autoStart · sin controles al arrancar).
+        lastUpdated: '2026-01-10',
         // F45.a · Diego 2026-07-29 · Dealer Rust hereda el patrón F44 de
         // Dealer Sage · auto-arranca el demo al aterrizar + esconde el tour
         // scaffolding · content-only mode. Preserva la identidad legacy

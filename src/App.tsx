@@ -28,6 +28,7 @@ import DemoSidebar from "./components/demo/DemoSidebar"
 import DemoSpotlight from "./components/demo/DemoSpotlight"
 import DemoProcessPanel from "./components/demo/DemoProcessPanel"
 import DemoStepBanner from "./components/demo/DemoStepBanner"
+import HideChromeControls from "./components/demo/HideChromeControls"
 import DemoAIIndicator from "./components/demo/DemoAIIndicator"
 import StrataArchitectureSlide from "./components/demo/StrataArchitectureSlide"
 
@@ -744,6 +745,12 @@ function App() {
       {!demoProfile.hideChrome && <DemoSpotlight />}
       <DemoProcessPanel onNavigate={handleNavigate} />
       {!demoProfile.hideChrome && <DemoStepBanner />}
+
+      {/* F78.k · Diego 2026-08-18 · floating "Skip → / Exit" controls
+           SOLO se muestran cuando `hideChrome === true` · reemplaza la falta
+           de Next/Back visible en profiles auto-play (COI · Acme) · reduce
+           confusion de "no puedo avanzar / no puedo salir" flagged por user. */}
+      <HideChromeControls />
 
       {/* FIXED NAVBAR (Unified) — hidden for email simulation, WRG Estimator routes & workspace/detail */}
       {/* isBFIMobile: hide navbar for BFI mobile-frame steps (r1.6) so the phone renders full-screen */}
