@@ -486,26 +486,32 @@ export const DEMO_PROFILES: DemoProfile[] = [
     // ─── TOUR PROFILES (6) · CSV `Profile(s)` consumers of shared modules ──
     {
         id: 'inbound-outbound',
-        title: 'Manufacturer Order Entry',
-        subtitle: 'Manufacturer Indigo · Inbound RFQ / Outbound Ack · Dealer↔Manufacturer',
-        name: 'Manufacturer Indigo',
-        companyName: 'Manufacturer Indigo',
-        description: 'Manufacturer order entry · inbound RFQ + PO · outbound quote + ack + shipping + invoice · 12 steps · 2 flows',
+        title: 'Inbound / Outbound Order Flow',
+        // F78.l · Diego 2026-08-18 · rebrand default POV a Dealer · el demo
+        // se presenta a un dealer client · antes decía "Manufacturer Indigo"
+        // en varias secciones del navbar · confusión de perspectiva.
+        subtitle: 'Dealer Cobalt · Inbound RFQ / Outbound Ack · Dealer ↔ Manufacturer',
+        name: 'Dealer Cobalt',
+        companyName: 'Dealer Cobalt',
+        description: 'Dealer-side order flow · inbound RFQ + PO · outbound quote + ack + shipping + invoice · 12 steps · 2 flows',
         icon: '📦',
-        experienceLabel: 'Manufacturer Experience',
+        experienceLabel: 'Dealer Experience',
         experienceKind: 'tour-profile',
         maturity: 'demo',
-        sourceLabel: 'Manufacturer Indigo · standalone tour',
-        lastUpdated: '2026-07-27',
+        sourceLabel: 'Dealer Cobalt · standalone tour (dealer↔manufacturer)',
+        // F78.l · Diego 2026-08-18 · promoted al top del standalone list
+        // (was 2026-07-27) · queda como primer standalone demo visible.
+        lastUpdated: '2026-08-18',
         steps: INBOUND_OUTBOUND_STEPS,
         stepBehavior: INBOUND_OUTBOUND_STEP_BEHAVIOR,
         stepMessages: INBOUND_OUTBOUND_STEP_MESSAGES,
         selfIndicatedSteps: INBOUND_OUTBOUND_SELF_INDICATED,
         hasRoleSwitcher: true,
-        defaultRoleId: 'manufacturer',
+        // F78.l · Diego 2026-08-18 · dealer POV default (antes 'manufacturer')
+        defaultRoleId: 'dealer',
         roles: [
-            { id: 'manufacturer', label: 'Manufacturer', icon: 'factory' },
             { id: 'dealer',       label: 'Dealer',       icon: 'store' },
+            { id: 'manufacturer', label: 'Manufacturer', icon: 'factory' },
         ],
     },
     {
