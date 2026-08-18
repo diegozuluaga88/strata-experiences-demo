@@ -19,6 +19,7 @@ import CRM from "./CRM"
 import Pricing from "./Pricing"
 import Shipping from "./Shipping"
 import QuoteConverter from "./QuoteConverter"
+import ExpertHubTransactionsWrapper from "./blocks/prod-imports/wrappers/ExpertHubTransactionsWrapper"
 import RoleSwitchToast from "./components/manufacturer/RoleSwitchToast"
 import Navbar from "./components/Navbar"
 import DemoGuide from "./components/DemoGuide"
@@ -534,6 +535,22 @@ function App() {
             onNavigate={(p) => handleNavigate(p)}
           />
         );
+      case 'quote-converter':
+        // F78 · Diego 2026-08-18 · Quote Converter promoted a top-level
+        // production experience · reuse the standalone page component.
+        return (
+          <QuoteConverter
+            onLogout={handleLogout}
+            onNavigateToWorkspace={() => setCurrentPage('workspace')}
+            onNavigate={handleNavigate}
+          />
+        );
+      case 'expert-hub-published':
+        // F78 · Diego 2026-08-18 · Expert Hub top-level production experience
+        // renders via the prod-sync wrapper (TenantProvider + noop callbacks) ·
+        // NO requiere `currentStep` (legacy case 'expert-hub' se usa cuando
+        // un tour profile · OPS/COI/Continua/Acme · lo lanza con steps).
+        return <ExpertHubTransactionsWrapper />;
       case 'email-marketplace':
         return <EmailSimulation />;
       case 'dealer-kanban':

@@ -29,6 +29,8 @@ export type SimulationApp =
     | 'catalog' | 'survey' | 'ack-detail' | 'order-detail'
     | 'quote-detail' | 'transactions' | 'mac' | 'inventory'
     | 'crm'
+    | 'quote-converter'
+    | 'expert-hub-published'
     | 'dupler-pdf' | 'dupler-warehouse' | 'dupler-reporting'
     | 'wrg-estimator'
     | 'mbi-overview' | 'mbi-budget' | 'mbi-accounting' | 'mbi-quotes' | 'mbi-design'
@@ -51,7 +53,7 @@ export interface DemoStep {
     flowId?: string;
 }
 
-export type DemoProfileId = 'acme' | 'coi' | 'dupler' | 'ops' | 'continua' | 'wrg' | 'mbi' | 'leland' | 'bfi' | 'workspaces' | 'officeworks' | 'inbound-outbound' | 'clc' | 'crm';
+export type DemoProfileId = 'acme' | 'coi' | 'dupler' | 'ops' | 'continua' | 'wrg' | 'mbi' | 'leland' | 'bfi' | 'workspaces' | 'officeworks' | 'inbound-outbound' | 'clc' | 'crm' | 'expert-hub' | 'quote-converter';
 
 /** Icon aliases surface as Lucide icons via components/RoleSwitcher.tsx's ICON_MAP. */
 export type RoleIcon =
@@ -142,16 +144,120 @@ export interface DemoProfile {
      * el `pl-80` del main viewport ya que no hay sidebar que compensar.
      */
     hideChrome?: boolean;
+
+    // ─── Production-first grouping (F78 · 2026-08-18) ───────────────────────
+    /**
+     * Madurez de la experiencia · usada por `ExperienceSwitcher` para agrupar
+     * las publicadas al top y aplicar el badge visual (Production = success
+     * tone / Demo = neutral tone). Defaults a 'demo' si no se define.
+     *  · 'production' — código sincronizado desde una app real en producción
+     *    (via prod-sync F19/F43 · o alineación explícita a prod como QC F26.E)
+     *  · 'demo'       — experience puramente demo · aunque use vocabulario o
+     *    componentes reales · nunca fue empujado como sync desde el repo prod
+     */
+    maturity?: 'production' | 'demo';
+
+    /**
+     * Cuando esta experiencia es un "customer story" o child de una experience
+     * publicada (e.g. `continua` es un tour que usa Expert Hub como app · queda
+     * agrupado bajo "Expert Hub · Published"). Undefined = standalone.
+     */
+    parentExperience?: 'expert-hub' | 'quote-converter';
+
+    /**
+     * Etiqueta de origen · se muestra debajo del subtitle en el dropdown ·
+     * ejemplos:
+     *  · "expert-hub@f59da74 · synced F19 + F43.a"
+     *  · "quote-converter prod · Leland-grounded (F26.E)"
+     *  · "BFI · dealer standalone"
+     */
+    sourceLabel?: string;
+
+    /**
+     * Fecha ISO (YYYY-MM-DD) de la última actualización relevante · usada por
+     * ExperienceSwitcher para ordenar la sección de standalone demos (más
+     * reciente primero). Curación manual initial pass; script en el futuro.
+     */
+    lastUpdated?: string;
+
+    /**
+     * Naturaleza del demo · signaling en el switcher sin nombrar al cliente:
+     *   · 'client-demo'   — armado para presentación de cliente específico
+     *   · 'in-progress'   — experiencia interna de Strata que estamos
+     *     construyendo · producto o platform-focused (no cliente puntual)
+     * Default (undefined) = 'client-demo'.
+     */
+    demoOrigin?: 'client-demo' | 'in-progress';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DEMO_PROFILES · ordered by the CSV `demo-2026-strata-modules-x-experiences`.
-// First: 8 Feature-module experiences (Category='Feature module' in CSV).
-// Then: 6 Tour-profile experiences (only appear as Profile(s) consumers of
-// shared modules · not their own CSV row).
-// Sub-header split rendered by Navbar via `experienceKind` field.
+// DEMO_PROFILES · production-first ordering (F78 · 2026-08-18)
+//
+// Order:
+//   1. Production experiences (Expert Hub · Quote Converter) — first
+//   2. Feature modules (existing 8) — retained order
+//   3. Tour profiles (existing 6) — retained order
+//
+// ExperienceSwitcher renders 3 grouped sections based on `maturity` +
+// `parentExperience`:
+//   · "Expert Hub · Published"     — expert-hub + parentExperience='expert-hub'
+//   · "Quote Converter · Published" — quote-converter + parentExperience='quote-converter'
+//   · "Standalone demos"           — everything else, sorted by lastUpdated desc
+//
+// Sub-header split (feature-module / tour-profile) preserved via `experienceKind`
+// for backwards compat but no longer drives the grouping.
 // ═══════════════════════════════════════════════════════════════════════════════
 export const DEMO_PROFILES: DemoProfile[] = [
+    // ─── PRODUCTION EXPERIENCES (2) · F78 · 2026-08-18 ─────────────────────
+    {
+        id: 'expert-hub',
+        title: 'Expert Hub',
+        subtitle: 'Transactions · OCR · Comparisons · Feedback',
+        name: 'Expert Hub',
+        // F78.e · Diego 2026-08-18 · companyName = product name para que el
+        // navbar principal muestre "Expert Hub" y no "Strata" · consistente
+        // con el pattern donde companyName drivea el H1 del switcher trigger.
+        companyName: 'Expert Hub',
+        description: 'Multi-tenant back-office platform · production sync from expert-hub · Transactions inbox + OCR + PO-vs-ACK comparisons + Create Record wizard + Feedback loop',
+        icon: '🛡️',
+        experienceLabel: 'Published product',
+        // Renderizado via `ExpertHubTransactionsWrapper` (TenantProvider + noop
+        // callbacks · prod-sync copy en blocks/prod-imports/) · NO requiere
+        // currentStep como el legacy case 'expert-hub'.
+        defaultApp: 'expert-hub-published',
+        steps: [],
+        stepBehavior: {},
+        stepMessages: {},
+        selfIndicatedSteps: [],
+        maturity: 'production',
+        parentExperience: 'expert-hub',
+        sourceLabel: 'expert-hub@f59da74 · synced F19 + F43.a',
+        lastUpdated: '2026-07-28',
+        experienceKind: 'feature-module',
+    },
+    {
+        id: 'quote-converter',
+        title: 'Quote Converter',
+        subtitle: 'SIF Generator · OCR Tracking · Observability',
+        name: 'Quote Converter',
+        // F78.e · Diego 2026-08-18 · ver nota en 'expert-hub' arriba · el
+        // navbar muestra companyName · debe ser el product name, no 'Strata'.
+        companyName: 'Quote Converter',
+        description: 'Standalone quote-to-SIF converter · production app grounded in Leland Order SO2604102 · DS primitives (FileUploadModal · DocumentReviewModal · EditableLineTable)',
+        icon: '🔁',
+        experienceLabel: 'Published product',
+        defaultApp: 'quote-converter',
+        steps: [],
+        stepBehavior: {},
+        stepMessages: {},
+        selfIndicatedSteps: [],
+        maturity: 'production',
+        parentExperience: 'quote-converter',
+        sourceLabel: 'quote-converter prod · Leland-grounded (F26.E)',
+        lastUpdated: '2026-07-14',
+        experienceKind: 'feature-module',
+    },
+
     // ─── FEATURE MODULES (8) · in CSV row order ────────────────────────────
     {
         id: 'wrg',
@@ -163,6 +269,9 @@ export const DEMO_PROFILES: DemoProfile[] = [
         icon: '🔧',
         defaultApp: 'wrg-estimator',
         experienceKind: 'feature-module',
+        maturity: 'demo',
+        sourceLabel: 'WRG · dealer standalone',
+        lastUpdated: '2026-07-18',
         steps: WRG_DEMO_STEPS,
         stepBehavior: WRG_DEMO_STEP_BEHAVIOR,
         stepMessages: WRG_DEMO_STEP_MESSAGES,
@@ -185,6 +294,9 @@ export const DEMO_PROFILES: DemoProfile[] = [
         icon: '📄',
         defaultApp: 'dupler-pdf',
         experienceKind: 'feature-module',
+        maturity: 'demo',
+        sourceLabel: 'Dupler · dealer standalone',
+        lastUpdated: '2026-07-16',
         steps: DUPLER_STEPS,
         stepBehavior: DUPLER_STEP_BEHAVIOR,
         stepMessages: DUPLER_STEP_MESSAGES,
@@ -212,6 +324,9 @@ export const DEMO_PROFILES: DemoProfile[] = [
         // que apuntan a su tab hero también · 2026-07-23.
         defaultApp: 'clc-calendar',
         experienceKind: 'feature-module',
+        maturity: 'demo',
+        sourceLabel: 'CLC · install scheduling standalone',
+        lastUpdated: '2026-07-23',
         steps: CLC_STEPS,
         stepBehavior: CLC_STEP_BEHAVIOR,
         stepMessages: CLC_STEP_MESSAGES,
@@ -239,6 +354,9 @@ export const DEMO_PROFILES: DemoProfile[] = [
         // clc-calendar) · Diego 2026-07-23.
         defaultApp: 'officeworks-intake',
         experienceKind: 'feature-module',
+        maturity: 'demo',
+        sourceLabel: 'Officeworks · spec check standalone',
+        lastUpdated: '2026-07-23',
         steps: OFFICEWORKS_STEPS,
         stepBehavior: OFFICEWORKS_STEP_BEHAVIOR,
         stepMessages: OFFICEWORKS_STEP_MESSAGES,
@@ -274,6 +392,9 @@ export const DEMO_PROFILES: DemoProfile[] = [
         // (Officeworks). Diego 2026-07-23.
         defaultApp: 'bfi-agency-fee',
         experienceKind: 'feature-module',
+        maturity: 'demo',
+        sourceLabel: 'BFI · agency fee standalone',
+        lastUpdated: '2026-07-23',
         steps: BFI_STEPS,
         stepBehavior: BFI_STEP_BEHAVIOR,
         stepMessages: BFI_STEP_MESSAGES,
@@ -296,6 +417,10 @@ export const DEMO_PROFILES: DemoProfile[] = [
         icon: '🪑',
         defaultApp: 'leland-strata',
         experienceKind: 'feature-module',
+        maturity: 'demo',
+        parentExperience: 'quote-converter',
+        sourceLabel: 'Leland · cousin of Quote Converter (SO2604102 grounded)',
+        lastUpdated: '2026-07-27',
         steps: LELAND_STEPS,
         stepBehavior: LELAND_STEP_BEHAVIOR,
         stepMessages: LELAND_STEP_MESSAGES,
@@ -318,6 +443,9 @@ export const DEMO_PROFILES: DemoProfile[] = [
         icon: '🏢',
         defaultApp: 'mbi-accounting',
         experienceKind: 'feature-module',
+        maturity: 'demo',
+        sourceLabel: 'MBI · back-office AI standalone',
+        lastUpdated: '2026-07-22',
         steps: MBI_STEPS,
         stepBehavior: MBI_STEP_BEHAVIOR,
         stepMessages: MBI_STEP_MESSAGES,
@@ -339,6 +467,10 @@ export const DEMO_PROFILES: DemoProfile[] = [
         icon: '👥',
         defaultApp: 'crm',
         experienceKind: 'feature-module',
+        maturity: 'demo',
+        demoOrigin: 'in-progress',
+        sourceLabel: 'Strata CRM · pipeline + forecast standalone',
+        lastUpdated: '2026-07-25',
         steps: CRM_STEPS,
         stepBehavior: CRM_STEP_BEHAVIOR,
         stepMessages: CRM_STEP_MESSAGES,
@@ -362,6 +494,9 @@ export const DEMO_PROFILES: DemoProfile[] = [
         icon: '📦',
         experienceLabel: 'Manufacturer Experience',
         experienceKind: 'tour-profile',
+        maturity: 'demo',
+        sourceLabel: 'Manufacturer Indigo · standalone tour',
+        lastUpdated: '2026-07-27',
         steps: INBOUND_OUTBOUND_STEPS,
         stepBehavior: INBOUND_OUTBOUND_STEP_BEHAVIOR,
         stepMessages: INBOUND_OUTBOUND_STEP_MESSAGES,
@@ -383,6 +518,10 @@ export const DEMO_PROFILES: DemoProfile[] = [
         icon: '💰',
         defaultApp: 'workspaces-submit',
         experienceKind: 'tour-profile',
+        maturity: 'demo',
+        demoOrigin: 'in-progress',
+        sourceLabel: 'Workspaces · expense management standalone tour',
+        lastUpdated: '2026-07-20',
         steps: WORKSPACES_STEPS,
         stepBehavior: WORKSPACES_STEP_BEHAVIOR,
         stepMessages: WORKSPACES_STEP_MESSAGES,
@@ -406,6 +545,10 @@ export const DEMO_PROFILES: DemoProfile[] = [
         icon: '🏗️',
         defaultApp: 'inventory',
         experienceKind: 'tour-profile',
+        maturity: 'demo',
+        parentExperience: 'expert-hub',
+        sourceLabel: 'Continua · Expert Hub tour (project & inventory)',
+        lastUpdated: '2026-07-24',
         steps: CONTINUA_DEMO_STEPS,
         stepBehavior: CONTINUA_DEMO_STEP_BEHAVIOR,
         stepMessages: CONTINUA_DEMO_STEP_MESSAGES,
@@ -432,8 +575,19 @@ export const DEMO_PROFILES: DemoProfile[] = [
         // auto-ingests ASN · 14 agents processing) · antes 'dashboard' aterrizaba
         // en content vacío (bug pre-existente · fix F42.g agregó fallback pero
         // Diego prefirió que arranque directo en el flow principal).
-        defaultApp: 'expert-hub',
+        //
+        // F78.d · Diego 2026-08-18 · promoted a 'expert-hub-published' (wrapper
+        // prod-sync F19+F43.a) para que el landing muestre la UI actualizada
+        // de producción · antes usaba el case legacy (4566 LOC · out of date).
+        // Los tour steps que aún tienen app='expert-hub' siguen renderizando
+        // el legacy component · migración full de tour steps queda para
+        // plan siguiente.
+        defaultApp: 'expert-hub-published',
         experienceKind: 'tour-profile',
+        maturity: 'demo',
+        parentExperience: 'expert-hub',
+        sourceLabel: 'OPS · Expert Hub tour (receiving → invoice → QB)',
+        lastUpdated: '2026-07-27',
         steps: OPS_DEMO_STEPS,
         stepBehavior: OPS_DEMO_STEP_BEHAVIOR,
         stepMessages: OPS_DEMO_STEP_MESSAGES,
@@ -456,6 +610,10 @@ export const DEMO_PROFILES: DemoProfile[] = [
         icon: '📧',
         defaultApp: 'email-marketplace',
         experienceKind: 'tour-profile',
+        maturity: 'demo',
+        parentExperience: 'expert-hub',
+        sourceLabel: 'COI · Expert Hub tour (email → kanban → hub → CRM)',
+        lastUpdated: '2026-07-29',
         // F44.a · Diego 2026-07-29 · el EmailSimulation step 1.1 gatea autoplay
         // en `isDemoActive === true`. Sin autoStart, el flow se congela en la
         // vista de email · no dispara AI Processing Modal · no avanza a Kanban.
@@ -486,6 +644,10 @@ export const DEMO_PROFILES: DemoProfile[] = [
         icon: '🏭',
         defaultApp: 'email-marketplace',
         experienceKind: 'tour-profile',
+        maturity: 'demo',
+        parentExperience: 'expert-hub',
+        sourceLabel: 'Acme · Expert Hub tour (COI legacy sin CRM)',
+        lastUpdated: '2026-07-29',
         // F45.a · Diego 2026-07-29 · Dealer Rust hereda el patrón F44 de
         // Dealer Sage · auto-arranca el demo al aterrizar + esconde el tour
         // scaffolding · content-only mode. Preserva la identidad legacy

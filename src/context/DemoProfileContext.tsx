@@ -14,10 +14,11 @@ export interface DemoProfileContextType {
 export const DemoProfileContext = createContext<DemoProfileContextType | undefined>(undefined);
 
 export function DemoProfileProvider({ children }: { children: ReactNode }) {
-    // Always boot into the Inbound | Outbound profile on page load.
-    // Runtime profile switches stay in memory only — no localStorage persistence —
-    // so the live demo always opens at the manufacturer story.
-    const [activeProfileId, setActiveProfileId] = useState<DemoProfileId>('inbound-outbound');
+    // F78.b · Diego 2026-08-18 · Boot into Expert Hub (production experience)
+    // por default en cada page load · antes era 'inbound-outbound'. Runtime
+    // profile switches stay in memory only · no localStorage persistence · el
+    // live demo siempre abre en la experiencia publicada principal.
+    const [activeProfileId, setActiveProfileId] = useState<DemoProfileId>('expert-hub');
 
     const activeProfile = DEMO_PROFILES.find(p => p.id === activeProfileId) || DEMO_PROFILES[0];
 
