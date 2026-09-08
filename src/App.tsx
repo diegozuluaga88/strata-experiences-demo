@@ -265,13 +265,16 @@ function App() {
   const isCLC = demoProfile.id === 'clc';
   const isInboundOutbound = demoProfile.id === 'inbound-outbound';
   const isTimeTracker = demoProfile.id === 'time-tracker';
-  // TT.53 · Diego 2026-09-08 · profiles que ya montan su PROPIA Navbar
-  // de producción (Expert Hub · Quote Converter) → el host oculta su
-  // Navbar para no duplicar chrome · el switcher se rescata via el
-  // FloatingExperienceSwitcher pill top-right.
+  // TT.53/54 · Diego 2026-09-08 · profiles que ya montan su PROPIA Navbar
+  // de producción (Expert Hub hoy vía ExpertHubAppWrapper). El host oculta
+  // su Navbar para no duplicar chrome · el switcher se rescata via el
+  // FloatingExperienceSwitcher chip alineado con la navbar (top-6 left-4).
+  //
+  // Quote Converter · TEMPORALMENTE excluido hasta S4 lifte su Navbar prod ·
+  // hoy `src/QuoteConverter.tsx` es una versión slim sin navbar propio ·
+  // si lo excluyéramos aquí, el usuario se quedaba sin ningún navbar.
   const hasOwnProdNavbar =
-    demoProfile.defaultApp === 'expert-hub-published' ||
-    demoProfile.defaultApp === 'quote-converter';
+    demoProfile.defaultApp === 'expert-hub-published';
 
   // Pages hidden for inbound-outbound profile (manufacturer scope only).
   // Per Liliana team review: CRM placeholder + dealer-side widgets out of scope.
