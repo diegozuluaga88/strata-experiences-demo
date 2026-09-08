@@ -70,6 +70,13 @@ export default function Navbar({ onLogout, activeTab = 'OCR', onNavigate, onOpen
                             <img src={logoDarkBrand} alt="Strata" className="h-8 w-20 object-contain hidden dark:block" />
                         </div>
                         <div className="w-px h-6 bg-border mx-1"></div>
+                        {/* TT.58 · Diego 2026-09-08 · Experience switcher PRIMERO · antes del Tenant */}
+                        {leftSlot && (
+                            <>
+                                {leftSlot}
+                                <div className="w-px h-6 bg-border mx-1"></div>
+                            </>
+                        )}
                         <div className="hidden sm:flex items-center gap-1 px-2" ref={tenantRef}>
                             <div>
                                 <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider leading-none">TENANT</div>
