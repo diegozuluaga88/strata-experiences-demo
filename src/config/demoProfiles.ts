@@ -275,6 +275,11 @@ export const DEMO_PROFILES: DemoProfile[] = [
         subtitle: 'Designer week view + manager team utilization',
         name: 'Time Tracker',
         companyName: '',
+        // TT.53.1 · Diego 2026-09-08 · experienceLabel override para evitar
+        // que el navbar del host caiga al default 'Dealer Experience'
+        // (visible como pequeña uppercase encima del logo/company). Time
+        // Tracker es un prototype pattern, no una dealer experience.
+        experienceLabel: 'Time Tracker',
         description: 'Time entry (Google-Calendar-style weekly grid) + team utilization heatmap · manager coaching · Timely-style budget prompt',
         icon: '⏱️',
         defaultApp: 'time-tracker',

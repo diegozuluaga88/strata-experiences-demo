@@ -9,6 +9,38 @@
 @tailwind components;
 @tailwind utilities;
 
+/* TT.53.1 · Diego 2026-09-08 · scrollbar sin arrows nativas de Windows.
+   Firefox: scrollbar-width thin. Chromium/Webkit: track transparente +
+   thumb muted-foreground + display:none en los buttons (up/down arrows).
+   Antes el widget nativo aparecía en toda scroll area y confundía al
+   user (parecía un control interactivo pero era decorativo). */
+html, body {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+    background: transparent;
+}
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+    background-color: rgba(148, 163, 184, 0.35);
+    border-radius: 9999px;
+}
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(148, 163, 184, 0.55);
+}
+html::-webkit-scrollbar-button,
+body::-webkit-scrollbar-button {
+    display: none;
+}
+
 @layer utilities {
     .scrollbar-minimal::-webkit-scrollbar {
         width: 6px;
