@@ -34,6 +34,9 @@ import DemoSpotlight from "./components/demo/DemoSpotlight"
 import DemoProcessPanel from "./components/demo/DemoProcessPanel"
 import DemoStepBanner from "./components/demo/DemoStepBanner"
 import HideChromeControls from "./components/demo/HideChromeControls"
+// TT.53 · Diego 2026-09-08 · Floating switcher pill que se muestra cuando la
+// experiencia activa monta su propia Navbar prod y el host oculta la suya.
+import FloatingExperienceSwitcher from "./components/navbar/FloatingExperienceSwitcher"
 import DemoAIIndicator from "./components/demo/DemoAIIndicator"
 import StrataArchitectureSlide from "./components/demo/StrataArchitectureSlide"
 
@@ -262,6 +265,13 @@ function App() {
   const isCLC = demoProfile.id === 'clc';
   const isInboundOutbound = demoProfile.id === 'inbound-outbound';
   const isTimeTracker = demoProfile.id === 'time-tracker';
+  // TT.53 · Diego 2026-09-08 · profiles que ya montan su PROPIA Navbar
+  // de producción (Expert Hub · Quote Converter) → el host oculta su
+  // Navbar para no duplicar chrome · el switcher se rescata via el
+  // FloatingExperienceSwitcher pill top-right.
+  const hasOwnProdNavbar =
+    demoProfile.defaultApp === 'expert-hub-published' ||
+    demoProfile.defaultApp === 'quote-converter';
 
   // Pages hidden for inbound-outbound profile (manufacturer scope only).
   // Per Liliana team review: CRM placeholder + dealer-side widgets out of scope.
@@ -773,9 +783,16 @@ function App() {
            confusion de "no puedo avanzar / no puedo salir" flagged por user. */}
       <HideChromeControls />
 
+      {/* TT.53 · Floating pill de switch experience cuando el profile trae
+           su propio prod Navbar (Expert Hub · Quote Converter) · reemplaza
+           al host Navbar (que se oculta abajo) para evitar chrome duplicado. */}
+      {hasOwnProdNavbar && <FloatingExperienceSwitcher />}
+
       {/* FIXED NAVBAR (Unified) — hidden for email simulation, WRG Estimator routes & workspace/detail */}
       {/* isBFIMobile: hide navbar for BFI mobile-frame steps (r1.6) so the phone renders full-screen */}
-      {(isDemoActive
+      {/* TT.53 · hasOwnProdNavbar bypass · Expert Hub / Quote Converter ya
+           traen su propia Navbar de producción · no duplicar chrome. */}
+      {!hasOwnProdNavbar && (isDemoActive
         ? currentStep.app !== 'email-marketplace'
           && currentStep.app !== 'wrg-estimator'
           && currentStep.app !== 'workspaces-submit'
