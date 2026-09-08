@@ -237,8 +237,8 @@ export const DEMO_PROFILES: DemoProfile[] = [
         selfIndicatedSteps: [],
         maturity: 'production',
         parentExperience: 'expert-hub',
-        sourceLabel: 'expert-hub@f59da74 · synced F19 + F43.a',
-        lastUpdated: '2026-07-28',
+        sourceLabel: 'expert-hub@f59da74 · S1: Navbar + Comparisons (Transactions ships · OCR/Feedback tabs stubbed pending S2/S3)',
+        lastUpdated: '2026-09-08',
         experienceKind: 'feature-module',
     },
     {
