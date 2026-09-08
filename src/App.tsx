@@ -58,10 +58,13 @@ import OfficeworksPage, { OfficeworksDashboardPage } from "./components/officewo
 import CLCPage, { CLCDashboardPage } from "./components/clc/CLCPage"
 import SharedBlockShell from "./components/SharedBlockShell"
 import { findSharedBlock } from "./config/sharedBlocks"
-import { Calculator as CalculatorIcon, Receipt as ReceiptIcon, FileSearch as FileSearchIcon, Palette as PaletteIcon, Sparkles as SparklesIcon, Mail as MailIcon, Database as DatabaseIcon, ShieldCheck as ShieldCheckIcon, Building2 as Building2Icon, LayoutDashboard as LayoutDashboardIcon, Inbox as InboxIcon, Pencil as PencilIcon, ClipboardCheck as ClipboardCheckIcon, Send as SendIcon, Calendar as CalendarIcon, Folder as FolderIcon, ClipboardList as ClipboardListIcon } from 'lucide-react'
+import { Calculator as CalculatorIcon, Receipt as ReceiptIcon, FileSearch as FileSearchIcon, Palette as PaletteIcon, Sparkles as SparklesIcon, Mail as MailIcon, Database as DatabaseIcon, ShieldCheck as ShieldCheckIcon, Building2 as Building2Icon, LayoutDashboard as LayoutDashboardIcon, Inbox as InboxIcon, Pencil as PencilIcon, ClipboardCheck as ClipboardCheckIcon, Send as SendIcon, Calendar as CalendarIcon, Folder as FolderIcon, ClipboardList as ClipboardListIcon, Clock as ClockIcon } from 'lucide-react'
 
 // Leland Demo — 4 app shells (Phase L0 · expanded in L1-L5)
 import { LelandStrataShell, LelandInboxApp, LelandSeradexApp, LelandReviewQueueApp } from "./features/leland"
+// Time Tracker · lifted from config-evolution/time-tracker · feature-module
+// with defaultApp + hideChrome · renders WeeklyGrid + Team View directly
+import TimeTrackerApp from "./features/time-tracker/TimeTrackerApp"
 
 import {
   HomeIcon,
@@ -253,6 +256,7 @@ function App() {
   const isOfficeworks = demoProfile.id === 'officeworks';
   const isCLC = demoProfile.id === 'clc';
   const isInboundOutbound = demoProfile.id === 'inbound-outbound';
+  const isTimeTracker = demoProfile.id === 'time-tracker';
 
   // Pages hidden for inbound-outbound profile (manufacturer scope only).
   // Per Liliana team review: CRM placeholder + dealer-side widgets out of scope.
@@ -331,10 +335,17 @@ function App() {
     { name: 'Transactions', page: 'transactions', icon: BanknotesIcon },
     { name: 'Service Center', page: 'mac', icon: WrenchScrewdriverIcon },
   ];
+  // Time Tracker · single pill · parity con el standalone que centra un big
+  // "⏱️ Time Tracker" pill en el navbar. El mode-switch "My Timesheet /
+  // Team View" vive dentro del feature card, no en el navbar del host.
+  const timeTrackerNav = [
+    { name: 'Time Tracker', page: 'time-tracker', icon: ClockIcon },
+  ];
 
   // Pick the nav for the active profile (works with or without demo tour).
   const profileNav =
-    isCLC ? clcNav
+    isTimeTracker ? timeTrackerNav
+    : isCLC ? clcNav
     : isOfficeworks ? officeworksNav
     : isWorkspaces ? workspacesNav
     : isBFI ? bfiNav
@@ -655,6 +666,11 @@ function App() {
         return <CLCPage />;
       case 'clc-dashboard':
         return <CLCDashboardPage />;
+      case 'time-tracker':
+        // Time Tracker · Wurkwel-inspired standalone lifted at features/time-tracker/
+        // Empty steps + hideChrome + defaultApp='time-tracker' land the user
+        // straight on WeeklyGrid + TeamView without the tour overlay.
+        return <TimeTrackerApp />;
       default:
         return null;
     }

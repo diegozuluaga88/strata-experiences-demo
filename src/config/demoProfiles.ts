@@ -22,6 +22,10 @@ import {
 } from './profiles/inbound-outbound';
 import { CLC_STEPS, CLC_STEP_BEHAVIOR, CLC_STEP_MESSAGES, CLC_SELF_INDICATED } from './profiles/clc';
 import { CRM_STEPS, CRM_STEP_BEHAVIOR, CRM_STEP_MESSAGES, CRM_SELF_INDICATED } from './profiles/crm';
+// Time Tracker · lifted from config-evolution/time-tracker · feature-module
+// with defaultApp + hideChrome so DemoSidebar/Spotlight/StepBanner do not
+// render around the app (matches the standalone experience).
+import { TIME_TRACKER_STEPS, TIME_TRACKER_STEP_BEHAVIOR, TIME_TRACKER_STEP_MESSAGES, TIME_TRACKER_SELF_INDICATED } from './profiles/time-tracker';
 
 export type SimulationApp =
     | 'dashboard' | 'expert-hub' | 'email-marketplace'
@@ -38,7 +42,9 @@ export type SimulationApp =
     | 'bfi-agency-fee' | 'bfi-receiving'
     | 'workspaces-submit' | 'workspaces-approval' | 'workspaces-ap' | 'workspaces-reporting'
     | 'officeworks-intake' | 'officeworks-design' | 'officeworks-spec-check' | 'officeworks-submission' | 'officeworks-dashboard' | 'officeworks-labor' | 'officeworks-sales'
-    | 'clc-calendar' | 'clc-sharepoint' | 'clc-intake' | 'clc-dashboard';
+    | 'clc-calendar' | 'clc-sharepoint' | 'clc-intake' | 'clc-dashboard'
+    // Time Tracker · single-app profile · renderea WeeklyGrid + TeamView
+    | 'time-tracker';
 
 export interface DemoStep {
     id: string;
@@ -53,7 +59,7 @@ export interface DemoStep {
     flowId?: string;
 }
 
-export type DemoProfileId = 'acme' | 'coi' | 'dupler' | 'ops' | 'continua' | 'wrg' | 'mbi' | 'leland' | 'bfi' | 'workspaces' | 'officeworks' | 'inbound-outbound' | 'clc' | 'crm' | 'expert-hub' | 'quote-converter';
+export type DemoProfileId = 'acme' | 'coi' | 'dupler' | 'ops' | 'continua' | 'wrg' | 'mbi' | 'leland' | 'bfi' | 'workspaces' | 'officeworks' | 'inbound-outbound' | 'clc' | 'crm' | 'expert-hub' | 'quote-converter' | 'time-tracker';
 
 /** Icon aliases surface as Lucide icons via components/RoleSwitcher.tsx's ICON_MAP. */
 export type RoleIcon =
@@ -256,6 +262,32 @@ export const DEMO_PROFILES: DemoProfile[] = [
         sourceLabel: 'quote-converter prod · Leland-grounded (F26.E)',
         lastUpdated: '2026-07-14',
         experienceKind: 'feature-module',
+    },
+
+    // ─── TIME TRACKER · 2026-09-08 ─────────────────────────────────────────
+    // Lifted from config-evolution/time-tracker/ (Wurkwel-inspired standalone).
+    // Feature-module with defaultApp + hideChrome so the app renders directly ·
+    // no tour overlay (steps=[]). companyName intentionally empty · this is a
+    // prototype pattern, not a real tenant · Diego 2026-09-08 (TT.48.2).
+    {
+        id: 'time-tracker',
+        title: 'Time Tracker',
+        subtitle: 'Designer week view + manager team utilization',
+        name: 'Time Tracker',
+        companyName: '',
+        description: 'Time entry (Google-Calendar-style weekly grid) + team utilization heatmap · manager coaching · Timely-style budget prompt',
+        icon: '⏱️',
+        defaultApp: 'time-tracker',
+        experienceKind: 'feature-module',
+        maturity: 'demo',
+        sourceLabel: 'time-tracker · standalone (Sep 2026)',
+        lastUpdated: '2026-09-08',
+        demoOrigin: 'in-progress',
+        hideChrome: true,
+        steps: TIME_TRACKER_STEPS,
+        stepBehavior: TIME_TRACKER_STEP_BEHAVIOR,
+        stepMessages: TIME_TRACKER_STEP_MESSAGES,
+        selfIndicatedSteps: TIME_TRACKER_SELF_INDICATED,
     },
 
     // ─── FEATURE MODULES (8) · in CSV row order ────────────────────────────
