@@ -25,6 +25,10 @@ import QuoteConverter from "./QuoteConverter"
 // wrappers/ for reference, no longer imported). OCR + Feedback tabs render
 // placeholder cards until S2 + S3 land.
 import ExpertHubAppWrapper from "./blocks/prod-imports/wrappers/ExpertHubAppWrapper"
+// TT.56 · Diego 2026-09-08 · S4.a · Quote Converter mini-app shell con Navbar
+// prod (OCR · Observability · Feedback dropdown) + wrapping via leftSlot. El
+// slim QuoteConverter (SIF Generator) ahora es solo el contenido del OCR tab.
+import QuoteConverterAppWrapper from "./blocks/prod-imports/wrappers/QuoteConverterAppWrapper"
 import RoleSwitchToast from "./components/manufacturer/RoleSwitchToast"
 import Navbar from "./components/Navbar"
 import DemoGuide from "./components/DemoGuide"
@@ -267,16 +271,13 @@ function App() {
   const isCLC = demoProfile.id === 'clc';
   const isInboundOutbound = demoProfile.id === 'inbound-outbound';
   const isTimeTracker = demoProfile.id === 'time-tracker';
-  // TT.53/54 · Diego 2026-09-08 · profiles que ya montan su PROPIA Navbar
-  // de producción (Expert Hub hoy vía ExpertHubAppWrapper). El host oculta
-  // su Navbar para no duplicar chrome · el switcher se rescata via el
-  // FloatingExperienceSwitcher chip alineado con la navbar (top-6 left-4).
-  //
-  // Quote Converter · TEMPORALMENTE excluido hasta S4 lifte su Navbar prod ·
-  // hoy `src/QuoteConverter.tsx` es una versión slim sin navbar propio ·
-  // si lo excluyéramos aquí, el usuario se quedaba sin ningún navbar.
+  // TT.53/54/56 · Diego 2026-09-08 · profiles que ya montan su PROPIA Navbar
+  // de producción (Expert Hub · Quote Converter después de S4.a). El host
+  // oculta su Navbar para no duplicar chrome · el switcher se integra dentro
+  // del navbar prod vía leftSlot en el wrapper (TT.55 pattern).
   const hasOwnProdNavbar =
-    demoProfile.defaultApp === 'expert-hub-published';
+    demoProfile.defaultApp === 'expert-hub-published' ||
+    demoProfile.defaultApp === 'quote-converter';
 
   // Pages hidden for inbound-outbound profile (manufacturer scope only).
   // Per Liliana team review: CRM placeholder + dealer-side widgets out of scope.
@@ -568,15 +569,13 @@ function App() {
           />
         );
       case 'quote-converter':
-        // F78 · Diego 2026-08-18 · Quote Converter promoted a top-level
-        // production experience · reuse the standalone page component.
-        return (
-          <QuoteConverter
-            onLogout={handleLogout}
-            onNavigateToWorkspace={() => setCurrentPage('workspace')}
-            onNavigate={handleNavigate}
-          />
-        );
+        // TT.56 · Diego 2026-09-08 · S4.a · switched to the multi-page mini-app
+        // shell (Navbar prod OCR · Observability · Feedback + leftSlot switcher).
+        // Before: only slim QuoteConverter.tsx (SIF Generator). Now: full 3-tab
+        // shell + Observability page + FeedbackStatusPage · OCR tab renders the
+        // existing slim QuoteConverter as content (full prod OCRTracking lift
+        // = S5).
+        return <QuoteConverterAppWrapper />;
       case 'expert-hub-published':
         // TT.50.S1 · Diego 2026-09-08 · switched to the multi-page mini-app
         // shell (Navbar + Transactions + Comparisons + OCR/Feedback placeholders).
