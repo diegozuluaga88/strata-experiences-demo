@@ -14,11 +14,14 @@ export interface DemoProfileContextType {
 export const DemoProfileContext = createContext<DemoProfileContextType | undefined>(undefined);
 
 export function DemoProfileProvider({ children }: { children: ReactNode }) {
-    // F78.b · Diego 2026-08-18 · Boot into Expert Hub (production experience)
-    // por default en cada page load · antes era 'inbound-outbound'. Runtime
-    // profile switches stay in memory only · no localStorage persistence · el
-    // live demo siempre abre en la experiencia publicada principal.
-    const [activeProfileId, setActiveProfileId] = useState<DemoProfileId>('expert-hub');
+    // TT.49.1 · Diego 2026-09-08 · flipped default to 'time-tracker' (foco
+    // actual de review con stakeholders · parity con Fase 1 en demo-2026-strata
+    // que también arranca en time-tracker · TT.48.1). Antes era 'expert-hub'
+    // (F78.b) · plan pendiente: refinar Expert Hub + Quote Converter (Standard
+    // tier · MVP + lift páginas faltantes) antes de restituir el default a
+    // 'expert-hub'. Runtime switches siguen sin persistencia · el live demo
+    // vuelve a la default en cada page load.
+    const [activeProfileId, setActiveProfileId] = useState<DemoProfileId>('time-tracker');
 
     const activeProfile = DEMO_PROFILES.find(p => p.id === activeProfileId) || DEMO_PROFILES[0];
 
