@@ -2,7 +2,13 @@
 // Lift for strata-experiences-demo · S1 · 2026-09-08
 // Adaptations: import paths point to the demo's own AuthContext + assets;
 // tenant selector + 4-tab nav + user menu + Change Password preserved verbatim.
-import { useState, useRef, useEffect } from 'react'
+//
+// TT.55 · Diego 2026-09-08 · minimal API extension for the experiences-demo
+// shell: opcional `leftSlot?: ReactNode` que se renderea después del Tenant
+// dropdown y antes del center-nav · usado para inyectar el chip de
+// ExperienceSwitcher dentro del navbar chrome (parity visual con Tenant) ·
+// prop no existe en prod y el default (undefined) preserva el layout prod.
+import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import { useTheme } from 'strata-design-system'
 import { useTenant } from './TenantContext'
@@ -18,9 +24,11 @@ interface NavbarProps {
     activeTab?: NavTab | string;
     onNavigateToWorkspace: () => void;
     onNavigate: (page: any) => void;
+    /** TT.55 · slot opcional (experiences-demo only) · se pinta después del Tenant · antes del center-nav. */
+    leftSlot?: ReactNode;
 }
 
-export default function Navbar({ onLogout, activeTab = 'OCR', onNavigate }: NavbarProps) {
+export default function Navbar({ onLogout, activeTab = 'OCR', onNavigate, leftSlot }: NavbarProps) {
     const { theme, toggleTheme } = useTheme()
     const { user } = useAuth()
     const { selectedTenants, tenants, toggleTenant, selectAll } = useTenant()
@@ -79,7 +87,7 @@ export default function Navbar({ onLogout, activeTab = 'OCR', onNavigate }: Navb
 
                             {/* Tenant Dropdown */}
                             {isTenantOpen && (
-                                <div className="absolute left-14 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-lg z-50 p-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="absolute left-14 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-lg z-[60] p-1 animate-in fade-in slide-in-from-top-2 duration-200">
                                     <div className="px-3 py-2 border-b border-border mb-1 flex items-center justify-between">
                                         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tenants</span>
                                         <button
@@ -114,6 +122,13 @@ export default function Navbar({ onLogout, activeTab = 'OCR', onNavigate }: Navb
                                 </div>
                             )}
                         </div>
+                        {/* TT.55 · leftSlot para el chip ExperienceSwitcher (experiences-demo shell only) */}
+                        {leftSlot && (
+                            <>
+                                <div className="w-px h-6 bg-border mx-1"></div>
+                                {leftSlot}
+                            </>
+                        )}
                     </div>
 
                     {/* Center: Nav Tabs */}

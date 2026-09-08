@@ -34,9 +34,11 @@ import DemoSpotlight from "./components/demo/DemoSpotlight"
 import DemoProcessPanel from "./components/demo/DemoProcessPanel"
 import DemoStepBanner from "./components/demo/DemoStepBanner"
 import HideChromeControls from "./components/demo/HideChromeControls"
-// TT.53 · Diego 2026-09-08 · Floating switcher pill que se muestra cuando la
-// experiencia activa monta su propia Navbar prod y el host oculta la suya.
-import FloatingExperienceSwitcher from "./components/navbar/FloatingExperienceSwitcher"
+// TT.55 · Diego 2026-09-08 · switcher ahora integrado dentro del Navbar prod
+// (Expert Hub · via leftSlot en ExpertHubAppWrapper). Fase anterior TT.53 usaba
+// un FloatingExperienceSwitcher separado top-left · deprecated. El file
+// components/navbar/FloatingExperienceSwitcher.tsx queda en el repo por
+// reference · el nuevo componente activo es InlineExperienceSwitcher.tsx
 import DemoAIIndicator from "./components/demo/DemoAIIndicator"
 import StrataArchitectureSlide from "./components/demo/StrataArchitectureSlide"
 
@@ -786,10 +788,9 @@ function App() {
            confusion de "no puedo avanzar / no puedo salir" flagged por user. */}
       <HideChromeControls />
 
-      {/* TT.53 · Floating pill de switch experience cuando el profile trae
-           su propio prod Navbar (Expert Hub · Quote Converter) · reemplaza
-           al host Navbar (que se oculta abajo) para evitar chrome duplicado. */}
-      {hasOwnProdNavbar && <FloatingExperienceSwitcher />}
+      {/* TT.55 · Diego 2026-09-08 · el switcher ahora vive INSIDE del Navbar
+           prod (leftSlot en ExpertHubAppWrapper) · no requiere mount extra
+           acá · el navbar del host sigue oculto para published products. */}
 
       {/* FIXED NAVBAR (Unified) — hidden for email simulation, WRG Estimator routes & workspace/detail */}
       {/* isBFIMobile: hide navbar for BFI mobile-frame steps (r1.6) so the phone renders full-screen */}

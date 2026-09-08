@@ -21,6 +21,9 @@ import { TenantProvider } from '../deps/TenantContext'
 import Navbar from '../deps/Navbar'
 import ExpertHubTransactions from '../ExpertHubTransactions'
 import ExpertHubComparisons from '../ExpertHubComparisons'
+// TT.55 · Diego 2026-09-08 · switcher inline · injected as leftSlot en el
+// Navbar prod (parity visual con el Tenant dropdown al lado).
+import InlineExperienceSwitcher from '../../../components/navbar/InlineExperienceSwitcher'
 
 type Page = 'ocr-tracking' | 'transactions' | 'comparisons' | 'feedback'
 
@@ -54,6 +57,7 @@ export default function ExpertHubAppWrapper() {
                         activeTab={activeTabByPage[currentPage]}
                         onNavigateToWorkspace={noop}
                         onNavigate={handleNavigate}
+                        leftSlot={<InlineExperienceSwitcher />}
                     />
                     <PlaceholderPage
                         icon={ScanEye}
@@ -69,6 +73,7 @@ export default function ExpertHubAppWrapper() {
                         activeTab={activeTabByPage[currentPage]}
                         onNavigateToWorkspace={noop}
                         onNavigate={handleNavigate}
+                        leftSlot={<InlineExperienceSwitcher />}
                     />
                     <PlaceholderPage
                         icon={MessageSquare}
@@ -84,6 +89,7 @@ export default function ExpertHubAppWrapper() {
                         activeTab={activeTabByPage[currentPage]}
                         onNavigateToWorkspace={noop}
                         onNavigate={handleNavigate}
+                        leftSlot={<InlineExperienceSwitcher />}
                     />
                     <ExpertHubTransactions
                         onLogout={noop}
