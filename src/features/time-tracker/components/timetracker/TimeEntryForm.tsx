@@ -242,7 +242,11 @@ export default function TimeEntryForm({ isOpen, onClose, date, entry, allEntries
                                 scrollable solo se activa en viewports chicos.
                                 Antes (TT.23) 720px fijo · Save requería scroll con
                                 muchos fields. */}
-                            <DialogPanel className="w-full max-w-[720px] lg:max-w-[960px] xl:max-w-[1080px] max-h-[calc(100vh-6rem)] rounded-2xl bg-card border border-border shadow-lg overflow-hidden flex flex-col">
+                            {/* TT.51 · Diego 2026-09-08 · más altura al modal · max-h de calc(100vh-6rem)
+                                 → calc(100vh-2rem) · antes el ProjectSelector dropdown se veía cortado
+                                 cuando había poco espacio · ahora con portal (fixed) + más altura del
+                                 modal se resuelve ambos vectores. */}
+                            <DialogPanel className="w-full max-w-[720px] lg:max-w-[960px] xl:max-w-[1080px] max-h-[calc(100vh-2rem)] rounded-2xl bg-card border border-border shadow-lg overflow-hidden flex flex-col">
                                 {/* Header · sticky · TT.25 · title y chip alineados en 1 row
                                     baseline · chip usa horas semanales restantes (total, no daily). */}
                                 <div className="flex items-center justify-between px-6 py-3 border-b border-border shrink-0 gap-4">

@@ -1,3 +1,8 @@
+/* TT.51 · Diego 2026-09-08 · font imports for the Time Tracker chapter (Inter
+   + PP Monument Extended) · antes faltaban en strata-experiences-demo · el
+   Team View se veía con fallback fonts vs el standalone y demo-2026-strata. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.cdnfonts.com/css/pp-monument-extended');
 @import './styles/theme.css';
 
 @tailwind base;
