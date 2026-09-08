@@ -117,16 +117,17 @@ export default function QuoteConverterObservability({ onLogout, onNavigate }: Ob
                     </button>
                 </div>
 
-                {/* Row 1: 3 KPI cards + 1 chart card */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* TT.57.1 · Diego 2026-09-08 · grid distribution matches Figma
+                     reference: 5-col grid con chart card tall (col-span-2 · row-span-2)
+                     a la derecha · 3 KPIs por row (Documents/InFlight/Errors ·
+                     Avg times) a la izquierda. */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     <KpiCard label="Documents Converted to SIF" value="6" />
                     <KpiCard label="In Flight Documents" value="15" />
                     <KpiCard label="Number Of Errors" value="1" tone="destructive" />
-                    <ChartCard label="Documents Converted to SIF by Type" data={CHART_DATA} rangeLabel={rangeLabel} />
-                </div>
-
-                {/* Row 2: 3 KPI cards (timing metrics) */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="sm:col-span-2 lg:col-span-2 lg:row-span-2">
+                        <ChartCard label="Documents Converted to SIF by Type" data={CHART_DATA} rangeLabel={rangeLabel} />
+                    </div>
                     <KpiCard label="Avg Capture Time (min)" value="1.4" />
                     <KpiCard label="Avg Human Process Time (hrs)" value="0.09" />
                     <KpiCard label="Avg Total Time (hrs)" value="0.11" />
@@ -174,7 +175,7 @@ export default function QuoteConverterObservability({ onLogout, onNavigate }: Ob
 
 function KpiCard({ label, value, tone = 'default' }: { label: string; value: string; tone?: 'default' | 'destructive' }) {
     return (
-        <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="rounded-2xl border border-border bg-card p-5 min-h-[140px] flex flex-col">
             <p className="text-xs font-medium text-muted-foreground leading-tight">{label}</p>
             <p className={`mt-3 text-4xl font-semibold tabular-nums leading-none ${tone === 'destructive' ? 'text-destructive' : 'text-foreground'}`}>
                 {value}
@@ -185,14 +186,14 @@ function KpiCard({ label, value, tone = 'default' }: { label: string; value: str
 
 function ChartCard({ label, data, rangeLabel }: { label: string; data: { type: string; count: number }[]; rangeLabel: string }) {
     return (
-        <div className="rounded-2xl border border-border bg-card p-5 col-span-1">
+        <div className="rounded-2xl border border-border bg-card p-5 h-full flex flex-col min-h-[300px]">
             <p className="text-xs font-medium text-muted-foreground leading-tight">{label}</p>
-            <div className="mt-3 h-32 -mx-2">
+            <div className="flex-1 mt-3 -mx-2 min-h-[180px]">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={data} margin={{ top: 4, right: 8, bottom: 4, left: -20 }}>
+                    <BarChart data={data} margin={{ top: 8, right: 12, bottom: 8, left: -20 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgb(from var(--border) r g b / 0.5)" />
-                        <XAxis dataKey="type" tick={{ fontSize: 10, fill: 'rgb(from var(--muted-foreground) r g b / 1)' }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fontSize: 10, fill: 'rgb(from var(--muted-foreground) r g b / 1)' }} axisLine={false} tickLine={false} />
+                        <XAxis dataKey="type" tick={{ fontSize: 11, fill: 'rgb(from var(--muted-foreground) r g b / 1)' }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 11, fill: 'rgb(from var(--muted-foreground) r g b / 1)' }} axisLine={false} tickLine={false} />
                         <Tooltip
                             cursor={{ fill: 'rgb(from var(--muted) r g b / 0.4)' }}
                             contentStyle={{
@@ -203,11 +204,11 @@ function ChartCard({ label, data, rangeLabel }: { label: string; data: { type: s
                                 padding: '6px 8px',
                             }}
                         />
-                        <Bar dataKey="count" fill="rgb(from var(--primary) r g b / 1)" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="count" fill="rgb(from var(--primary) r g b / 1)" radius={[4, 4, 0, 0]} maxBarSize={220} />
                     </BarChart>
                 </ResponsiveContainer>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1">{rangeLabel.toLowerCase()}</p>
+            <p className="text-[10px] text-muted-foreground mt-1 text-center">{rangeLabel.toLowerCase()}</p>
         </div>
     )
 }
