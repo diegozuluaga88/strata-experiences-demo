@@ -264,6 +264,36 @@ export const DEMO_PROFILES: DemoProfile[] = [
         experienceKind: 'feature-module',
     },
 
+    // ─── TRANSACTION MANAGEMENT (inbound-outbound) · promoted a slot #3
+    // Diego 2026-09-08 (TT.62) · moved arriba porque es la 3ra experiencia
+    // más consultada por stakeholders (después de las 2 published products).
+    // Antes vivía en la sección TOUR PROFILES · re-parenteado aquí manteniendo
+    // toda su metadata (roles · steps · etc).
+    {
+        id: 'inbound-outbound',
+        title: 'Transaction Management',
+        subtitle: 'Inbound RFQ / Outbound Ack · Dealer ↔ Manufacturer transaction flow',
+        name: 'Transaction Management',
+        companyName: 'Transaction Management',
+        description: 'End-to-end transaction management · inbound RFQ + PO · outbound quote + ack + shipping + invoice · 12 steps · 2 flows · presented from the dealer POV by default (manufacturer POV available in the role switcher).',
+        icon: '📦',
+        experienceLabel: 'Dealer Experience',
+        experienceKind: 'tour-profile',
+        maturity: 'demo',
+        sourceLabel: 'Transaction Management · dealer ↔ manufacturer capability showcase',
+        lastUpdated: '2026-08-18',
+        steps: INBOUND_OUTBOUND_STEPS,
+        stepBehavior: INBOUND_OUTBOUND_STEP_BEHAVIOR,
+        stepMessages: INBOUND_OUTBOUND_STEP_MESSAGES,
+        selfIndicatedSteps: INBOUND_OUTBOUND_SELF_INDICATED,
+        hasRoleSwitcher: true,
+        defaultRoleId: 'dealer',
+        roles: [
+            { id: 'dealer',       label: 'Dealer',       icon: 'store' },
+            { id: 'manufacturer', label: 'Manufacturer', icon: 'factory' },
+        ],
+    },
+
     // ─── TIME TRACKER · 2026-09-08 ─────────────────────────────────────────
     // Lifted from config-evolution/time-tracker/ (Wurkwel-inspired standalone).
     // Feature-module with defaultApp + hideChrome so the app renders directly ·
@@ -520,38 +550,9 @@ export const DEMO_PROFILES: DemoProfile[] = [
         ],
     },
 
-    // ─── TOUR PROFILES (6) · CSV `Profile(s)` consumers of shared modules ──
-    {
-        id: 'inbound-outbound',
-        // F78.m · Diego 2026-08-18 · rebrand a feature-name en vez de dealer
-        // alias fake ("Dealer Cobalt" / "Manufacturer Indigo" era codename
-        // interno). El demo es una capability showcase · no tiene client
-        // story puntual · el label debe describir la capability.
-        title: 'Transaction Management',
-        subtitle: 'Inbound RFQ / Outbound Ack · Dealer ↔ Manufacturer transaction flow',
-        name: 'Transaction Management',
-        companyName: 'Transaction Management',
-        description: 'End-to-end transaction management · inbound RFQ + PO · outbound quote + ack + shipping + invoice · 12 steps · 2 flows · presented from the dealer POV by default (manufacturer POV available in the role switcher).',
-        icon: '📦',
-        experienceLabel: 'Dealer Experience',
-        experienceKind: 'tour-profile',
-        maturity: 'demo',
-        sourceLabel: 'Transaction Management · dealer ↔ manufacturer capability showcase',
-        // F78.l · Diego 2026-08-18 · promoted al top del standalone list
-        // (was 2026-07-27) · queda como primer standalone demo visible.
-        lastUpdated: '2026-08-18',
-        steps: INBOUND_OUTBOUND_STEPS,
-        stepBehavior: INBOUND_OUTBOUND_STEP_BEHAVIOR,
-        stepMessages: INBOUND_OUTBOUND_STEP_MESSAGES,
-        selfIndicatedSteps: INBOUND_OUTBOUND_SELF_INDICATED,
-        hasRoleSwitcher: true,
-        // F78.l · Diego 2026-08-18 · dealer POV default (antes 'manufacturer')
-        defaultRoleId: 'dealer',
-        roles: [
-            { id: 'dealer',       label: 'Dealer',       icon: 'store' },
-            { id: 'manufacturer', label: 'Manufacturer', icon: 'factory' },
-        ],
-    },
+    // ─── TOUR PROFILES · CSV `Profile(s)` consumers of shared modules ──
+    // TT.62 · Diego 2026-09-08 · inbound-outbound (Transaction Management)
+    // se movió arriba al slot #3 · ver bloque INBOUND-OUTBOUND al inicio.
     {
         id: 'workspaces',
         title: 'Expense Management End-to-End',
