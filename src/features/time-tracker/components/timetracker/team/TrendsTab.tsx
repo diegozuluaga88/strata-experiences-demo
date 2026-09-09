@@ -76,25 +76,24 @@ export default function TrendsTab({ rows, onDesignerClick, hoursVsSold, producti
                 </div>
             </div>
 
-            {/* Training-gap sparklines · headline whitespace #3 */}
-            <TrainingGapSparklines rows={filtered} onDesignerClick={onDesignerClick} />
-
-            {/* Charts must-have debajo · benchmark:223 + benchmark:225 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <HoursVsSoldCard data={hoursVsSold} />
-                <ProductionRateCard buckets={productionRate} />
-            </div>
-
-            {/* TT.65 · Diego 2026-09-09 · Project progress vs plan · manager
-                 triage view · ordenado por urgencia (past > near > on-track >
-                 early). TT.65.1 · click row abre drill-down modal con
-                 deliverables + ongoing + task type breakdown. */}
+            {/* TT.65.4 · Diego 2026-09-09 · Project progress PRIMERO · training
+                 al final. La triage view es la más accionable del tab · manager
+                 la quiere de un vistazo al abrir Trends. */}
             <ProjectProgressCard rows={projectProgress} onRowClick={setDrilldownRow} />
             <ProjectProgressDrilldown
                 row={drilldownRow}
                 allEntries={allEntries ?? []}
                 onClose={() => setDrilldownRow(null)}
             />
+
+            {/* Charts must-have · benchmark:223 + benchmark:225 */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <HoursVsSoldCard data={hoursVsSold} />
+                <ProductionRateCard buckets={productionRate} />
+            </div>
+
+            {/* Training-gap sparklines · headline whitespace #3 · al final */}
+            <TrainingGapSparklines rows={filtered} onDesignerClick={onDesignerClick} />
         </div>
     )
 }
