@@ -87,7 +87,13 @@ export default function ProjectProgressCard({ rows, onRowClick }: Props) {
                 <div className="flex items-baseline justify-between flex-wrap gap-3">
                     <div>
                         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                            <Target className="h-4 w-4 text-primary" />
+                            {/* TT.65.3 · Diego 2026-09-09 · icono en badge lime con
+                                 text-primary-foreground (dark sobre lime · pasa AAA)
+                                 · antes text-primary sobre bg-card fallaba WCAG
+                                 (~1.6:1). Mismo pattern que summary chips. */}
+                            <span className="inline-flex items-center justify-center h-6 w-6 rounded-md bg-primary text-primary-foreground shrink-0">
+                                <Target className="h-3.5 w-3.5" />
+                            </span>
                             Project progress vs plan
                         </h3>
                         <p className="text-[11px] text-muted-foreground mt-0.5">Ranked by proximity to budget cap · past-the-plan first · manager triage view.</p>
