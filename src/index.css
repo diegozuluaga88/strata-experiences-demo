@@ -41,6 +41,14 @@ body::-webkit-scrollbar-button {
     display: none;
 }
 
+/* TT.64 · Diego 2026-09-09 · scrollbar arrows también para overflow interno
+   (TabsShell · tablas · dropdowns) · no solo html/body. */
+*::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
 @layer utilities {
     .scrollbar-minimal::-webkit-scrollbar {
         width: 6px;
