@@ -1,8 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// SOURCE: expert-hub/src/components/comparison/mockComparisonData.ts
-// COMMIT: 247b864 · 2026-07-28 · F43.a re-sync
-// Do not edit in place · re-sync from source when prod evolves.
-// ─────────────────────────────────────────────────────────────────────────────
 // Mock comparison reports for the demo. Adapted from the UI-Dealer
 // mockReports.ts dataset (AIS Furniture / Steelcase) into the shape
 // aligned with the Python contract (DerivedStatus, BusinessSeverity,

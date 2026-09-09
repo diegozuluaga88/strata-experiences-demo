@@ -1,8 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// SOURCE: expert-hub/src/components/comparison/DiscrepancyList.tsx
-// COMMIT: 247b864 · 2026-07-28 · F43.a re-sync
-// Do not edit in place · re-sync from source when prod evolves.
-// ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronRight, Sparkles, ArrowRight, AlertTriangle, Check, X as XMark, MessageSquareWarning, CheckCircle2, FileSearch } from 'lucide-react'
 import type { BusinessSeverity, DecisionAction, Discrepancy } from './comparisonTypes'

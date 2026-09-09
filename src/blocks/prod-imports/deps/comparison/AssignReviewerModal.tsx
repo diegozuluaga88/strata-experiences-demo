@@ -1,8 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// SOURCE: expert-hub/src/components/comparison/AssignReviewerModal.tsx
-// COMMIT: 247b864 · 2026-07-28 · F43.a re-sync
-// Do not edit in place · re-sync from source when prod evolves.
-// ─────────────────────────────────────────────────────────────────────────────
 import { Fragment, useState } from 'react'
 import { Dialog, Transition, TransitionChild, DialogPanel } from '@headlessui/react'
 import { X, Sparkles, ArrowRight, UserCircle, Check } from 'lucide-react'

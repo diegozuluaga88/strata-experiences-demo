@@ -1,8 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// SOURCE: expert-hub/src/components/comparison/comparisonTypes.ts
-// COMMIT: 247b864 · 2026-07-28 · F43.a re-sync
-// Do not edit in place · re-sync from source when prod evolves.
-// ─────────────────────────────────────────────────────────────────────────────
 // Types aligned with the ai-python-strata-ack-comparison v2.1.0 contract.
 // Demo-only: nothing here hits a real backend, but the shapes mirror the
 // Python service so the UI maps 1:1 when integration happens later.
