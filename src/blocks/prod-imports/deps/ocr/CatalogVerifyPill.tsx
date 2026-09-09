@@ -9,7 +9,7 @@ interface CatalogVerifyPillProps {
 }
 
 function similarityClasses(pct: number): string {
-    if (pct >= 90) return 'bg-success/10 text-success dark:bg-success/15 dark:text-success'
+    if (pct >= 90) return 'bg-green-50 text-green-700 dark:bg-green-500/15 dark:text-green-300'
     if (pct >= 75) return 'bg-yellow-50 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300'
     return 'bg-zinc-100 text-zinc-700 dark:bg-zinc-700/40 dark:text-zinc-300'
 }
@@ -21,7 +21,7 @@ export default function CatalogVerifyPill({ sku, onUseReplacement }: CatalogVeri
         return (
             <span
                 title="Verified in catalog database"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-md bg-success/10 text-success dark:bg-success/10 dark:text-success whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-md bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-300 whitespace-nowrap"
             >
                 <CheckCircle2 className="h-3 w-3 shrink-0" />
                 Verified
@@ -59,8 +59,8 @@ export default function CatalogVerifyPill({ sku, onUseReplacement }: CatalogVeri
                             {/* Header */}
                             <div className="p-4 pb-3 border-b border-border">
                                 <div className="flex items-start gap-3">
-                                    <div className="h-9 w-9 rounded-lg bg-warning/10 dark:bg-warning/15 flex items-center justify-center shrink-0">
-                                        <AlertCircle className="h-4 w-4 text-warning dark:text-warning" />
+                                    <div className="h-9 w-9 rounded-lg bg-amber-50 dark:bg-amber-500/15 flex items-center justify-center shrink-0">
+                                        <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-300" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-1.5 mb-0.5">

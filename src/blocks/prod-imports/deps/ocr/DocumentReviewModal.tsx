@@ -187,7 +187,7 @@ function buildUpstreamChain(doc: OcrDocCardData): LinkedDoc[] {
 
 function relationBadgeClasses(relation: ChainRelation): string {
     switch (relation) {
-        case 'source': return 'bg-info/10 text-info dark:bg-info/10 dark:text-info'
+        case 'source': return 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300'
         case 'current': return 'bg-primary text-primary-foreground'
     }
 }
@@ -353,7 +353,7 @@ export default function DocumentReviewModal({ isOpen, onClose, doc, onSave, onSe
                                     {onSendFeedback && (
                                         <button
                                             onClick={() => onSendFeedback(doc)}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-info bg-info/10 border border-info/30 rounded-lg hover:bg-info/20 transition-colors"
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-500/10 border border-blue-500/30 rounded-lg hover:bg-blue-500/20 transition-colors"
                                             title="Report an issue or share feedback about this document"
                                         >
                                             <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -370,7 +370,7 @@ export default function DocumentReviewModal({ isOpen, onClose, doc, onSave, onSe
                                         View Original PDF
                                     </button>
                                     {isReviewed ? (
-                                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-md bg-success/10 text-success dark:bg-success/15 dark:text-success">
+                                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-md bg-green-50 text-green-700 dark:bg-green-500/15 dark:text-green-300">
                                             <CheckCircle2 className="h-3.5 w-3.5" /> Reviewed
                                         </span>
                                     ) : (
@@ -533,7 +533,7 @@ export default function DocumentReviewModal({ isOpen, onClose, doc, onSave, onSe
                                                             <td className="px-3 py-3"><EditableValue value={formatCurrency(li.productCost)} editable onChange={trackEdit} /></td>
                                                             <td className="px-3 py-3"><EditableValue value={`${li.discount.toFixed(2)}%`} editable onChange={trackEdit} /></td>
                                                             <td className="px-3 py-3 text-right">
-                                                                <button aria-label="Remove line" className="p-1 rounded-md text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/15 transition-colors">
+                                                                <button aria-label="Remove line" className="p-1 rounded-md text-red-600 hover:bg-red-50 dark:hover:bg-red-500/15 transition-colors">
                                                                     <Trash2 className="h-4 w-4" />
                                                                 </button>
                                                             </td>

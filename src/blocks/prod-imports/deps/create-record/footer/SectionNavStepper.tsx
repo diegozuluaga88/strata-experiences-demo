@@ -1,8 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// SOURCE: expert-hub/src/components/create-record/footer/SectionNavStepper.tsx
-// COMMIT: 247b864 · 2026-07-28 · F43.a re-sync
-// Do not edit in place · re-sync from source when prod evolves.
-// ─────────────────────────────────────────────────────────────────────────────
 import { Fragment } from 'react'
 import { ChevronRight } from 'lucide-react'
 import type { PaneView } from '../left-rail/PreflightLeftRail'

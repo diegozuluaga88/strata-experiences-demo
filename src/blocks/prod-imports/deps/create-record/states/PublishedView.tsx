@@ -1,8 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// SOURCE: expert-hub/src/components/create-record/states/PublishedView.tsx
-// COMMIT: 247b864 · 2026-07-28 · F43.a re-sync
-// Do not edit in place · re-sync from source when prod evolves.
-// ─────────────────────────────────────────────────────────────────────────────
 import { Check, ArrowRight, Sparkles } from 'lucide-react'
 import type { RecordType } from '../types'
 import { configFor } from '../recordTypeConfig'

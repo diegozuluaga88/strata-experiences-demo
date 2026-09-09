@@ -17,9 +17,9 @@ interface DocTypeChipProps {
 function chipClasses(type: OcrDocType): string {
     switch (type) {
         case 'Purchase Order':
-            return 'bg-info/10 text-info dark:bg-info/15 dark:text-info'
+            return 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300'
         case 'Acknowledgment':
-            return 'bg-warning/10 text-warning dark:bg-warning/15 dark:text-warning'
+            return 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
         case 'Quote':
             return 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300'
         case 'Invoice':

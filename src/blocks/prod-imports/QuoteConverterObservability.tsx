@@ -40,33 +40,6 @@ export default function QuoteConverterObservability({ onLogout, onNavigate }: Ob
 
     return (
         <div className="min-h-screen bg-background font-sans text-foreground pb-10">
-            {/* Breadcrumb hoisted above navbar */}
-            <div className="fixed top-2 left-6 z-[55] text-xs opacity-80 hover:opacity-100 transition-opacity pointer-events-auto">
-                <Breadcrumbs items={[
-                    { label: 'Dealer Experience', onClick: () => onNavigate('ocr') },
-                    { label: 'Observability', active: true },
-                ]} />
-            </div>
-
-            {/* Top-right controls — provider view name + Live pill (parity con el figma) */}
-            <div className="fixed top-2 right-6 z-[55] flex items-center gap-2">
-                <button
-                    type="button"
-                    className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-border bg-card text-foreground hover:bg-muted transition-colors"
-                    title="Provider view"
-                >
-                    PDF to Sif (dark)
-                    <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                </button>
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                    <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success" />
-                    </span>
-                    Live · expires 15m
-                </span>
-            </div>
-
             <Navbar
                 onLogout={onLogout}
                 activeTab="Observability"
@@ -76,6 +49,33 @@ export default function QuoteConverterObservability({ onLogout, onNavigate }: Ob
             />
 
             <div className="pt-24 px-4 max-w-screen-2xl mx-auto space-y-4">
+                {/* TT.57.2 · Diego 2026-09-08 · breadcrumb + provider controls dentro
+                     del content pt-24 · parity con OCR / Comparisons de otras secciones ·
+                     antes estaban fixed top-2 y quedaban DESPEGADAS del navbar. */}
+                <div className="flex items-center justify-between gap-3 flex-wrap px-1">
+                    <Breadcrumbs items={[
+                        { label: 'Dealer Experience', onClick: () => onNavigate('ocr') },
+                        { label: 'Observability', active: true },
+                    ]} />
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-border bg-card text-foreground hover:bg-muted transition-colors"
+                            title="Provider view"
+                        >
+                            PDF to Sif (dark)
+                            <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                            <span className="relative flex h-1.5 w-1.5">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+                                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success" />
+                            </span>
+                            Live · expires 15m
+                        </span>
+                    </div>
+                </div>
+
                 {/* Info banner · disclaimer del proveedor */}
                 <div className="flex items-start gap-2 text-xs text-muted-foreground px-1">
                     <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />

@@ -1,4 +1,4 @@
-import { FileText, AlertCircle, CheckCircle2, CheckSquare, Send, Trash2, ArrowLeftRight } from 'lucide-react'
+import { FileText, AlertCircle, CheckCircle2, Send, Trash2 } from 'lucide-react'
 import { getTeamMember, avatarGradient } from '../team/teamMembers'
 import DocTypeChip from './DocTypeChip'
 
@@ -21,15 +21,16 @@ export interface OcrDocCardData {
 interface OcrDocCardProps {
     doc: OcrDocCardData
     onPreview: () => void
-    onMarkCompleted: () => void
+    // DE1.12 · Diego 2026-09-02 · onMarkCompleted removido · el botón
+    // "Mark as Completed" no existe en gostrata.app premain.
     onPreflightSync: () => void
     onDeprecate: () => void
     /** FB-06b · multi-select state · si onToggleSelect provisto, checkbox aparece. */
     selected?: boolean
     onToggleSelect?: () => void
-    /** Compare linked documents · solo visible cuando doc está Reviewed
-     *  (post human review · backend ya enlazó los docs). Aplica a PO y ACK. */
-    onCompareLinked?: () => void
+    // DE1.18 · Diego 2026-09-02 · onCompareLinked removido · el botón grande
+    // "Compare linked documents" no aparece en gostrata.app premain (las OCR
+    // cards son minimalistas). El flow de comparación vive en /comparisons.
 }
 
 // Best-effort relative time. Accepts seed strings ("Today, 2:30 PM",
@@ -51,7 +52,7 @@ function formatRelativeTime(input: string): string {
     return input
 }
 
-export default function OcrDocCard({ doc, onPreview, onMarkCompleted, onPreflightSync, onDeprecate, selected, onToggleSelect, onCompareLinked }: OcrDocCardProps) {
+export default function OcrDocCard({ doc, onPreview, onPreflightSync, onDeprecate, selected, onToggleSelect }: OcrDocCardProps) {
     const assignee = getTeamMember(doc.assigneeId)
     // For non-Reconciled/Completed states the 4 icons default to In-Progress mapping
     // (per Diego decision 2026-06-09 — confirm with prod for other states later).
@@ -111,20 +112,9 @@ export default function OcrDocCard({ doc, onPreview, onMarkCompleted, onPrefligh
                     </div>
                 </div>
 
-                {/* Compare linked documents · solo Reviewed (post human review) ·
-                    aplica a Purchase Order y Acknowledgment per stakeholder Reynier.
-                    Color alineado con "Compare with PO" de Transactions (brand-300
-                    lime DS · only as background per DS rule) para consistencia. */}
-                {isReconciled && onCompareLinked && (doc.type === 'Purchase Order' || doc.type === 'Acknowledgment') && (
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onCompareLinked() }}
-                        title="Compare this document against its linked counterpart (PO ↔ ACK)"
-                        className="mb-3 w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-300/30 text-foreground border border-brand-300/50 hover:bg-brand-300/50 dark:bg-brand-500/15 dark:border-brand-500/40 dark:hover:bg-brand-500/25 px-3 py-2 text-xs font-bold transition-colors"
-                    >
-                        <ArrowLeftRight className="h-3.5 w-3.5" />
-                        Compare linked documents
-                    </button>
-                )}
+                {/* DE1.18 · Diego 2026-09-02 · botón "Compare linked documents"
+                    removido · no aparece en gostrata.app premain (las OCR cards
+                    son minimalistas). El flow de comparación vive en /comparisons. */}
 
                 <div className="border-t border-border pt-3 flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">{formatRelativeTime(doc.date)}</span>
@@ -134,7 +124,7 @@ export default function OcrDocCard({ doc, onPreview, onMarkCompleted, onPrefligh
                         {isReconciled ? (
                             <span
                                 title="Reviewed"
-                                className="p-1.5 rounded-md text-success bg-success/10 dark:text-success dark:bg-success/15 inline-flex"
+                                className="p-1.5 rounded-md text-green-600 bg-green-50 dark:text-green-300 dark:bg-green-500/15 inline-flex"
                             >
                                 <CheckCircle2 className="h-4 w-4" />
                             </span>
@@ -154,39 +144,38 @@ export default function OcrDocCard({ doc, onPreview, onMarkCompleted, onPrefligh
                         >
                             <FileText className="h-4 w-4" />
                         </button>
+                        {/* DE1.14/15 · Diego 2026-09-02 · Preflight Sync visible tanto en
+                            In Review (in_progress) como en Ready to Sync (processed) para
+                            paridad con gostrata.app premain. En In Review el botón está
+                            DESHABILITADO con tooltip "Awaiting full review" (icono lighter
+                            + cursor-not-allowed) · solo en Ready to Sync es funcional. */}
+                        {doc.status === 'in_progress' && (
+                            <span
+                                title="Awaiting full review"
+                                aria-label="Preflight Sync (disabled — awaiting full review)"
+                                className="p-1.5 rounded-md text-green-400 bg-green-50/60 dark:text-green-500 dark:bg-green-500/10 inline-flex cursor-not-allowed opacity-70"
+                            >
+                                <Send className="h-4 w-4" />
+                            </span>
+                        )}
                         {isReconciled && (
                             <button
                                 onClick={(e) => { e.stopPropagation(); onPreflightSync() }}
                                 title="Preflight Sync"
                                 aria-label="Preflight Sync"
-                                className="p-1.5 rounded-md text-success bg-success/10 dark:text-success dark:bg-success/15 hover:brightness-95 transition-all"
+                                className="p-1.5 rounded-md text-green-600 bg-green-50 dark:text-green-300 dark:bg-green-500/15 hover:brightness-95 transition-all"
                             >
                                 <Send className="h-4 w-4" />
                             </button>
                         )}
-                        {isReconciled ? (
-                            <button
-                                onClick={(e) => { e.stopPropagation(); onMarkCompleted() }}
-                                title="Mark as Completed"
-                                aria-label="Mark as Completed"
-                                className="p-1.5 rounded-md text-success bg-success/15 dark:text-success dark:bg-success/100/25 hover:brightness-95 transition-all"
-                            >
-                                <CheckSquare className="h-4 w-4" />
-                            </button>
-                        ) : (
-                            <span
-                                title="Mark as Reviewed first"
-                                aria-label="Mark as Reviewed first (disabled — review first)"
-                                className="p-1.5 rounded-md text-success bg-success/10/60 dark:text-success dark:bg-success/10 inline-flex cursor-not-allowed opacity-70"
-                            >
-                                <CheckSquare className="h-4 w-4" />
-                            </span>
-                        )}
+                        {/* DE1.12 · Diego 2026-09-02 · botón Mark as Completed
+                            removido · no existe en gostrata.app premain (ambos
+                            estados: activo verde para reconciled y disabled). */}
                         <button
                             onClick={(e) => { e.stopPropagation(); onDeprecate() }}
                             title="Deprecate"
                             aria-label="Deprecate document"
-                            className="p-1.5 rounded-md text-destructive bg-destructive/10 dark:text-destructive dark:bg-destructive/15 hover:brightness-95 transition-all"
+                            className="p-1.5 rounded-md text-red-600 bg-red-50 dark:text-red-300 dark:bg-red-500/15 hover:brightness-95 transition-all"
                         >
                             <Trash2 className="h-4 w-4" />
                         </button>

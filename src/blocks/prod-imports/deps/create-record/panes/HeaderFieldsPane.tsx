@@ -1,8 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// SOURCE: expert-hub/src/components/create-record/panes/HeaderFieldsPane.tsx
-// COMMIT: 247b864 · 2026-07-28 · F43.a re-sync
-// Do not edit in place · re-sync from source when prod evolves.
-// ─────────────────────────────────────────────────────────────────────────────
 import type { Preflight, FieldStateMap, FieldState } from '../types'
 import FieldRow from '../field-row/FieldRow'
 import ObjectFieldGroup from '../field-row/ObjectFieldGroup'

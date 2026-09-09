@@ -15,6 +15,7 @@ import { useMemo, useState } from 'react'
 import { MessageSquarePlus, Search, Inbox, Eye, Paperclip } from 'lucide-react'
 import Navbar from './deps/quote-converter/Navbar'
 import Breadcrumbs from './deps/Breadcrumbs'
+import InlineExperienceSwitcher from '../../components/navbar/InlineExperienceSwitcher'
 import FeedbackComposerModal, { type FeedbackSubmission } from './deps/quote-converter/feedback/FeedbackComposerModal'
 import UserFeedbackDetailModal from './deps/quote-converter/feedback/UserFeedbackDetailModal'
 import { ToastContainer, useToast } from './deps/AuthToast'
@@ -157,23 +158,23 @@ export default function FeedbackStatusPage({ onLogout, onNavigate }: FeedbackSta
 
     return (
         <div className="min-h-screen bg-background font-sans text-foreground pb-10">
-            {/* Breadcrumbs */}
-            <div className="fixed top-2 left-6 z-50 text-xs opacity-80 hover:opacity-100 transition-opacity pointer-events-auto">
-                <Breadcrumbs items={[
-                    { label: 'SIF Generator', onClick: () => onNavigate('ocr') },
-                    { label: 'My feedback', active: true },
-                ]} />
-            </div>
-
             <Navbar
                 onLogout={onLogout}
                 activeTab="OCR"
                 onNavigateToWorkspace={() => onNavigate('ocr')}
                 onNavigate={onNavigate}
                 onOpenFeedback={() => setComposerOpen(true)}
+                leftSlot={<InlineExperienceSwitcher />}
             />
 
             <div className="pt-24 px-4 max-w-screen-2xl mx-auto">
+                {/* TT.57.2 · Diego 2026-09-08 · breadcrumb dentro del content ·
+                     parity con OCR/Comparisons de otras secciones. */}
+                <div className="mb-4 px-1">
+                    <Breadcrumbs items={[
+                        { label: 'SIF Generator', onClick: () => onNavigate('ocr') },
+                        { label: 'My feedback', active: true },
+                    ]} /></div>
                 {/* Header */}
                 <div className="mb-6">
                     <div className="flex items-center gap-2">

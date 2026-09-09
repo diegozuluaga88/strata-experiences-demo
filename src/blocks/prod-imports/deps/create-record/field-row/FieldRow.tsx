@@ -1,8 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// SOURCE: expert-hub/src/components/create-record/field-row/FieldRow.tsx
-// COMMIT: 247b864 · 2026-07-28 · F43.a re-sync
-// Do not edit in place · re-sync from source when prod evolves.
-// ─────────────────────────────────────────────────────────────────────────────
 import type { PreflightField, FieldState } from '../types'
 import ResolutionPill from './ResolutionPill'
 import FieldBody from './FieldBody'

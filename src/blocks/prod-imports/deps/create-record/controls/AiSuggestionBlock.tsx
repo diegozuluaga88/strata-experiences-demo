@@ -1,8 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// SOURCE: expert-hub/src/components/create-record/controls/AiSuggestionBlock.tsx
-// COMMIT: 247b864 · 2026-07-28 · F43.a re-sync
-// Do not edit in place · re-sync from source when prod evolves.
-// ─────────────────────────────────────────────────────────────────────────────
 import { Sparkles, Check, X } from 'lucide-react'
 import type { PreflightField } from '../types'
 import { labelFor } from '../usePreflight'
