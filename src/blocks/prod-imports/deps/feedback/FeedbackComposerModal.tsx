@@ -145,7 +145,9 @@ export default function FeedbackComposerModal({
 
     return (
         <Transition appear show={isOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-50" onClose={handleClose}>
+            {/* TT.61 · Diego 2026-09-08 · z-[210] > DocumentReviewModal z-[200] · antes
+                 z-50 quedaba debajo cuando se abría desde adentro del DocumentReview. */}
+            <Dialog as="div" className="relative z-[210]" onClose={handleClose}>
                 <Transition.Child
                     as={Fragment}
                     enter="ease-out duration-200" enterFrom="opacity-0" enterTo="opacity-100"

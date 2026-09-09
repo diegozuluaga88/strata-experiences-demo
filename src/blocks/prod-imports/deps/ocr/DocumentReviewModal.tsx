@@ -533,7 +533,14 @@ export default function DocumentReviewModal({ isOpen, onClose, doc, onSave, onSe
                                                             <td className="px-3 py-3"><EditableValue value={formatCurrency(li.productCost)} editable onChange={trackEdit} /></td>
                                                             <td className="px-3 py-3"><EditableValue value={`${li.discount.toFixed(2)}%`} editable onChange={trackEdit} /></td>
                                                             <td className="px-3 py-3 text-right">
-                                                                <button aria-label="Remove line" className="p-1 rounded-md text-red-600 hover:bg-red-50 dark:hover:bg-red-500/15 transition-colors">
+                                                                {/* TT.61 · Diego 2026-09-08 · trash button wired to local
+                                                                    setLineItems (line item removal reflects immediate in
+                                                                    the table + totals recompute). Antes era decorativo. */}
+                                                                <button
+                                                                    aria-label="Remove line"
+                                                                    onClick={() => setLineItems(prev => prev.filter(x => x.id !== li.id))}
+                                                                    className="p-1 rounded-md text-red-600 hover:bg-red-50 dark:hover:bg-red-500/15 transition-colors"
+                                                                >
                                                                     <Trash2 className="h-4 w-4" />
                                                                 </button>
                                                             </td>
