@@ -552,16 +552,18 @@ export interface ProjectProgressRow {
  *   - early     → pctOfBudget < 40
  */
 export function buildProjectProgress(
-    allEntries: TimeEntry[] = TIME_ENTRIES,
+    _allEntries: TimeEntry[] = TIME_ENTRIES,
     projects: Project[] = PROJECTS
 ): ProjectProgressRow[] {
+    // TT.65.1 · Diego 2026-09-09 · usar hoursLoggedBaseline como source of
+    // truth (representa el total real acumulado). Antes sumaba también
+    // TIME_ENTRIES mock (30 días × 10 designers) → inflaba a 200-400% · todo
+    // quedaba past-plan. Baseline ya captura el estado del proyecto para el
+    // demo · las entradas live del user en sesión son negligibles vs baseline.
     const rows: ProjectProgressRow[] = projects
         .filter(p => p.status === 'active')   // solo proyectos activos · closed/billed no aplican
         .map(p => {
-            const liveMinutes = allEntries
-                .filter(e => e.projectId === p.id)
-                .reduce((s, e) => s + e.durationMinutes, 0)
-            const hoursLogged = p.hoursLoggedBaseline + (liveMinutes / 60)
+            const hoursLogged = p.hoursLoggedBaseline
             const remaining = p.budgetHours - hoursLogged
             const pct = p.budgetHours > 0 ? (hoursLogged / p.budgetHours) * 100 : 0
             const status: ProjectProgressStatus =
@@ -584,4 +586,80 @@ export function buildProjectProgress(
         if (rank[a.status] !== rank[b.status]) return rank[a.status] - rank[b.status]
         return b.pctOfBudget - a.pctOfBudget    // dentro de cada bucket · más avanzado primero
     })
+}
+
+// ============================================================
+// TT.65.1 · Project drill-down (deliverables + recent work)
+// Diego 2026-09-09 · "seria bueno que al tocar un proyecto se vean el
+// listado de tareas cumplidas y las que faltan".
+// ============================================================
+export interface ProjectDrilldownRow {
+    entry: TimeEntry
+    taskLabel: string        // formatted task-type label
+    designerName: string     // via getTeamMember(entry.designerId)
+    hours: number
+}
+
+export interface ProjectDrilldown {
+    project: Project
+    deliverablesSent: ProjectDrilldownRow[]   // entries with deliverableComplete=true
+    ongoingWork: ProjectDrilldownRow[]        // entries without deliverableComplete (recent first)
+    byTaskType: { taskTypeId: string; label: string; hours: number; entryCount: number }[]
+    totalHoursThisSession: number             // sum of hours from all live entries for this project
+}
+
+export function buildProjectDrilldown(
+    projectId: string,
+    allEntries: TimeEntry[] = TIME_ENTRIES
+): ProjectDrilldown | null {
+    const project = getProject(projectId)
+    if (!project) return null
+
+    // Import getTaskType / getTeamMember lazily to avoid circular imports
+    // (they live in taskTypes.ts + teamMembers.ts respectively). We do it
+    // inline via dynamic require pattern is not TS-safe · use static import
+    // at top of file · already imported: getTaskType (from taskTypes)
+    const entries = allEntries.filter(e => e.projectId === projectId)
+    const total = entries.reduce((s, e) => s + e.durationMinutes, 0) / 60
+
+    const toRow = (e: TimeEntry): ProjectDrilldownRow => ({
+        entry: e,
+        taskLabel: getTaskType(e.taskTypeId)?.label ?? e.taskTypeId,
+        designerName: e.designerId,   // caller can resolve to full name via teamMembers if needed
+        hours: e.durationMinutes / 60,
+    })
+
+    const deliverablesSent = entries
+        .filter(e => e.deliverableComplete)
+        .sort((a, b) => (b.deliverableSentAt ?? b.date).localeCompare(a.deliverableSentAt ?? a.date))
+        .map(toRow)
+
+    const ongoingWork = entries
+        .filter(e => !e.deliverableComplete)
+        .sort((a, b) => `${b.date}T${String(b.startMinutesFromMidnight ?? 0).padStart(4, '0')}`.localeCompare(`${a.date}T${String(a.startMinutesFromMidnight ?? 0).padStart(4, '0')}`))
+        .map(toRow)
+
+    // Aggregate by task type
+    const byTaskMap = new Map<string, { taskTypeId: string; label: string; hours: number; entryCount: number }>()
+    for (const e of entries) {
+        const key = e.taskTypeId
+        const cur = byTaskMap.get(key) ?? {
+            taskTypeId: key,
+            label: getTaskType(e.taskTypeId)?.label ?? e.taskTypeId,
+            hours: 0,
+            entryCount: 0,
+        }
+        cur.hours += e.durationMinutes / 60
+        cur.entryCount += 1
+        byTaskMap.set(key, cur)
+    }
+    const byTaskType = Array.from(byTaskMap.values()).sort((a, b) => b.hours - a.hours)
+
+    return {
+        project,
+        deliverablesSent,
+        ongoingWork,
+        byTaskType,
+        totalHoursThisSession: Math.round(total * 10) / 10,
+    }
 }

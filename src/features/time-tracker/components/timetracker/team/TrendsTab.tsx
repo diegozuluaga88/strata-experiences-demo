@@ -13,8 +13,9 @@ import TrainingGapSparklines from '../TrainingGapSparklines'
 import HoursVsSoldCard from './HoursVsSoldCard'
 import ProductionRateCard from './ProductionRateCard'
 import ProjectProgressCard from './ProjectProgressCard'
+import ProjectProgressDrilldown from './ProjectProgressDrilldown'
 import { buildTrendsSummary, buildProjectProgress } from '../../../data/managerInsights'
-import type { TrainingGapRow, HoursVsSold, BucketRate } from '../../../data/managerInsights'
+import type { TrainingGapRow, HoursVsSold, BucketRate, ProjectProgressRow } from '../../../data/managerInsights'
 import type { DesignerId, TimeEntry } from '../../../data/timeEntries'
 
 interface Props {
@@ -37,6 +38,8 @@ export default function TrendsTab({ rows, onDesignerClick, hoursVsSold, producti
     // TT.65 · Project progress rows · calculado on-demand · fallback a data
     // built-in cuando allEntries no venga (compat retro).
     const projectProgress = useMemo(() => buildProjectProgress(allEntries), [allEntries])
+    // TT.65.1 · state para el drill-down modal (click en row abre)
+    const [drilldownRow, setDrilldownRow] = useState<ProjectProgressRow | null>(null)
 
     const designerCount = rows.length > 0 ? new Set(rows.map(r => r.designerId)).size : 0
 
@@ -84,9 +87,14 @@ export default function TrendsTab({ rows, onDesignerClick, hoursVsSold, producti
 
             {/* TT.65 · Diego 2026-09-09 · Project progress vs plan · manager
                  triage view · ordenado por urgencia (past > near > on-track >
-                 early). Va full-width abajo porque la lista puede tener 6-10
-                 rows. */}
-            <ProjectProgressCard rows={projectProgress} />
+                 early). TT.65.1 · click row abre drill-down modal con
+                 deliverables + ongoing + task type breakdown. */}
+            <ProjectProgressCard rows={projectProgress} onRowClick={setDrilldownRow} />
+            <ProjectProgressDrilldown
+                row={drilldownRow}
+                allEntries={allEntries ?? []}
+                onClose={() => setDrilldownRow(null)}
+            />
         </div>
     )
 }

@@ -14,11 +14,13 @@
 //   - on-track   (green · success)       ≥40% & <80%
 //   - early      (muted)                 <40%
 
-import { Target, AlertTriangle, TrendingUp, Sparkles } from 'lucide-react'
+import { Target, AlertTriangle, TrendingUp, Sparkles, ChevronRight } from 'lucide-react'
 import type { ProjectProgressRow, ProjectProgressStatus } from '../../../data/managerInsights'
 
 interface Props {
     rows: ProjectProgressRow[]
+    /** TT.65.1 · click a row to open the drill-down modal. */
+    onRowClick?: (row: ProjectProgressRow) => void
 }
 
 const STATUS_META: Record<ProjectProgressStatus, {
@@ -68,7 +70,7 @@ const STATUS_META: Record<ProjectProgressStatus, {
     },
 }
 
-export default function ProjectProgressCard({ rows }: Props) {
+export default function ProjectProgressCard({ rows, onRowClick }: Props) {
     if (rows.length === 0) return null
 
     const counts: Record<ProjectProgressStatus, number> = {
@@ -128,43 +130,70 @@ export default function ProjectProgressCard({ rows }: Props) {
                     const meta = STATUS_META[r.status]
                     const Icon = meta.icon
                     const barWidth = Math.min(100, r.pctOfBudget)
+                    const isClickable = !!onRowClick
                     return (
-                        <li key={r.project.id} className="p-4 hover:bg-muted/20 transition-colors">
-                            <div className="flex items-start justify-between gap-3 mb-2">
-                                <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="text-sm font-semibold text-foreground truncate">{r.project.name}</span>
-                                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${meta.pillBg} ${meta.pillText}`}>
-                                            <Icon className="h-2.5 w-2.5" />
-                                            {meta.label}
-                                        </span>
-                                    </div>
-                                    <div className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                                        {r.project.client} · <span className="font-mono">{r.project.id}</span> · {r.project.company}
-                                    </div>
+                        <li key={r.project.id}>
+                            {isClickable ? (
+                                <button
+                                    type="button"
+                                    onClick={() => onRowClick(r)}
+                                    className="w-full text-left p-4 hover:bg-muted/40 transition-colors group focus:outline-none focus:bg-muted/40"
+                                    title="Open project detail · deliverables + ongoing work"
+                                >
+                                    <RowContent r={r} meta={meta} Icon={Icon} barWidth={barWidth} showChevron />
+                                </button>
+                            ) : (
+                                <div className="p-4">
+                                    <RowContent r={r} meta={meta} Icon={Icon} barWidth={barWidth} />
                                 </div>
-                                <div className="text-right shrink-0 tabular-nums">
-                                    <div className="text-sm font-semibold text-foreground">
-                                        {r.hoursLogged.toFixed(1)}h <span className="text-muted-foreground font-normal">/ {r.budgetHours}h</span>
-                                    </div>
-                                    <div className={`text-[11px] font-medium ${meta.pillText}`}>
-                                        {r.pctOfBudget}% · {r.remainingHours >= 0 ? `${r.remainingHours.toFixed(1)}h left` : `${Math.abs(r.remainingHours).toFixed(1)}h over`}
-                                    </div>
-                                </div>
-                            </div>
-                            <div className={`relative h-2 rounded-full overflow-hidden ${meta.trackColor}`}>
-                                <div
-                                    className={`absolute inset-y-0 left-0 ${meta.barColor} transition-all`}
-                                    style={{ width: `${barWidth}%` }}
-                                />
-                                {r.pctOfBudget > 100 && (
-                                    <div className="absolute inset-y-0 right-0 w-1 bg-destructive-foreground/30" title="Over budget overflow indicator" />
-                                )}
-                            </div>
+                            )}
                         </li>
                     )
                 })}
             </ul>
         </div>
+    )
+}
+
+function RowContent({ r, meta, Icon, barWidth, showChevron }: { r: ProjectProgressRow; meta: typeof STATUS_META[ProjectProgressStatus]; Icon: React.ComponentType<{ className?: string }>; barWidth: number; showChevron?: boolean }) {
+    return (
+        <>
+            <div className="flex items-start justify-between gap-3 mb-2">
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-semibold text-foreground truncate">{r.project.name}</span>
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${meta.pillBg} ${meta.pillText}`}>
+                            <Icon className="h-2.5 w-2.5" />
+                            {meta.label}
+                        </span>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                        {r.project.client} · <span className="font-mono">{r.project.id}</span> · {r.project.company}
+                    </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                    <div className="text-right tabular-nums">
+                        <div className="text-sm font-semibold text-foreground">
+                            {r.hoursLogged.toFixed(1)}h <span className="text-muted-foreground font-normal">/ {r.budgetHours}h</span>
+                        </div>
+                        <div className={`text-[11px] font-medium ${meta.pillText}`}>
+                            {r.pctOfBudget}% · {r.remainingHours >= 0 ? `${r.remainingHours.toFixed(1)}h left` : `${Math.abs(r.remainingHours).toFixed(1)}h over`}
+                        </div>
+                    </div>
+                    {showChevron && (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground shrink-0 transition-colors" />
+                    )}
+                </div>
+            </div>
+            <div className={`relative h-2 rounded-full overflow-hidden ${meta.trackColor}`}>
+                <div
+                    className={`absolute inset-y-0 left-0 ${meta.barColor} transition-all`}
+                    style={{ width: `${barWidth}%` }}
+                />
+                {r.pctOfBudget > 100 && (
+                    <div className="absolute inset-y-0 right-0 w-1 bg-destructive-foreground/30" title="Over budget overflow indicator" />
+                )}
+            </div>
+        </>
     )
 }
