@@ -12,24 +12,31 @@ import { TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react'
 import TrainingGapSparklines from '../TrainingGapSparklines'
 import HoursVsSoldCard from './HoursVsSoldCard'
 import ProductionRateCard from './ProductionRateCard'
-import { buildTrendsSummary } from '../../../data/managerInsights'
+import ProjectProgressCard from './ProjectProgressCard'
+import { buildTrendsSummary, buildProjectProgress } from '../../../data/managerInsights'
 import type { TrainingGapRow, HoursVsSold, BucketRate } from '../../../data/managerInsights'
-import type { DesignerId } from '../../../data/timeEntries'
+import type { DesignerId, TimeEntry } from '../../../data/timeEntries'
 
 interface Props {
     rows: TrainingGapRow[]
     onDesignerClick: (designerId: DesignerId) => void
     hoursVsSold: HoursVsSold
     productionRate: BucketRate[]
+    // TT.65 · entries pasadas para calcular project progress live (baseline
+    // + entries acumulados). Opcional para compat con callers previos.
+    allEntries?: TimeEntry[]
 }
 
 const THRESHOLDS = [10, 15, 30] as const
 
-export default function TrendsTab({ rows, onDesignerClick, hoursVsSold, productionRate }: Props) {
+export default function TrendsTab({ rows, onDesignerClick, hoursVsSold, productionRate, allEntries }: Props) {
     const [threshold, setThreshold] = useState<number>(15)
 
     const summary = useMemo(() => buildTrendsSummary(rows, threshold), [rows, threshold])
     const filtered = useMemo(() => rows.filter(r => Math.abs(r.trendPercent) >= threshold), [rows, threshold])
+    // TT.65 · Project progress rows · calculado on-demand · fallback a data
+    // built-in cuando allEntries no venga (compat retro).
+    const projectProgress = useMemo(() => buildProjectProgress(allEntries), [allEntries])
 
     const designerCount = rows.length > 0 ? new Set(rows.map(r => r.designerId)).size : 0
 
@@ -74,6 +81,12 @@ export default function TrendsTab({ rows, onDesignerClick, hoursVsSold, producti
                 <HoursVsSoldCard data={hoursVsSold} />
                 <ProductionRateCard buckets={productionRate} />
             </div>
+
+            {/* TT.65 · Diego 2026-09-09 · Project progress vs plan · manager
+                 triage view · ordenado por urgencia (past > near > on-track >
+                 early). Va full-width abajo porque la lista puede tener 6-10
+                 rows. */}
+            <ProjectProgressCard rows={projectProgress} />
         </div>
     )
 }

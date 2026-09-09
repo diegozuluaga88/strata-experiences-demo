@@ -173,6 +173,7 @@ export default function TeamView({
                                 onDesignerClick={openDrilldown}
                                 hoursVsSold={hoursVsSold}
                                 productionRate={productionRate}
+                                allEntries={allEntries}
                             />
                         )
                     }

@@ -522,3 +522,66 @@ export function buildTrendsSummary(rows: TrainingGapRow[], significantThreshold 
 // TT.43.2 · buildTeamVelocityTrend + TeamVelocityPoint eliminados · el team
 // velocity chart fue removido del Trends tab por request de Diego (solo los
 // más relevantes según docs).
+
+// ============================================================
+// TT.65 · Project progress / budget compliance (Trends tab)
+// Diego 2026-09-09 · "graficas de seguimiento cumplimiento por proyecto
+// cuales estan a puento de llegar a una meta u objetivo para que el
+// manager pueda tomar mejores decisiones".
+//
+// Muestra proyectos activos ordenados por proximidad al budget cap ·
+// past-plan primero · luego near-limit · luego on-track · luego early.
+// Total logged = hoursLoggedBaseline + entries actuales (sync live).
+// ============================================================
+export type ProjectProgressStatus = 'past' | 'near' | 'on-track' | 'early'
+
+export interface ProjectProgressRow {
+    project: Project
+    hoursLogged: number         // baseline + entries acumulados (todos los designers)
+    budgetHours: number
+    remainingHours: number      // budget - logged (puede ser negativo si past)
+    pctOfBudget: number         // 0-∞ · 100 = exactamente en el budget
+    status: ProjectProgressStatus
+}
+
+/**
+ * Umbrales para el status:
+ *   - past      → pctOfBudget >= 100
+ *   - near      → pctOfBudget >= 80 && < 100
+ *   - on-track  → pctOfBudget >= 40 && < 80
+ *   - early     → pctOfBudget < 40
+ */
+export function buildProjectProgress(
+    allEntries: TimeEntry[] = TIME_ENTRIES,
+    projects: Project[] = PROJECTS
+): ProjectProgressRow[] {
+    const rows: ProjectProgressRow[] = projects
+        .filter(p => p.status === 'active')   // solo proyectos activos · closed/billed no aplican
+        .map(p => {
+            const liveMinutes = allEntries
+                .filter(e => e.projectId === p.id)
+                .reduce((s, e) => s + e.durationMinutes, 0)
+            const hoursLogged = p.hoursLoggedBaseline + (liveMinutes / 60)
+            const remaining = p.budgetHours - hoursLogged
+            const pct = p.budgetHours > 0 ? (hoursLogged / p.budgetHours) * 100 : 0
+            const status: ProjectProgressStatus =
+                pct >= 100 ? 'past' :
+                pct >= 80  ? 'near' :
+                pct >= 40  ? 'on-track' :
+                             'early'
+            return {
+                project: p,
+                hoursLogged: Math.round(hoursLogged * 10) / 10,
+                budgetHours: p.budgetHours,
+                remainingHours: Math.round(remaining * 10) / 10,
+                pctOfBudget: Math.round(pct),
+                status,
+            }
+        })
+    // Sort · urgencia primero (past > near > on-track > early)
+    const rank: Record<ProjectProgressStatus, number> = { past: 0, near: 1, 'on-track': 2, early: 3 }
+    return rows.sort((a, b) => {
+        if (rank[a.status] !== rank[b.status]) return rank[a.status] - rank[b.status]
+        return b.pctOfBudget - a.pctOfBudget    // dentro de cada bucket · más avanzado primero
+    })
+}
