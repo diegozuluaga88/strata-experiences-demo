@@ -97,9 +97,15 @@ interface OCRTrackingProps {
     onLogout: () => void;
     onNavigate: (page: string) => void;
     onConvertDocument?: (doc: { id: string; vendor: string; name: string; type: 'po' | 'ack'; tab: 'orders' | 'acknowledgments' }) => void;
+    /** ST-1169 · omit InlineExperienceSwitcher chip · default true. */
+    navbarSwitcher?: boolean;
+    /** ST-1169 · tabs a ocultar del center-nav (ej. ['Transactions']). */
+    navbarHiddenTabs?: string[];
+    /** ST-1169 · badge counts por tab name (ej. {Comparisons: 5}). */
+    navbarTabBadges?: Record<string, number>;
 }
 
-export default function OCRTracking({ onLogout, onNavigate, onConvertDocument }: OCRTrackingProps) {
+export default function OCRTracking({ onLogout, onNavigate, onConvertDocument, navbarSwitcher = true, navbarHiddenTabs, navbarTabBadges }: OCRTrackingProps) {
     const [showUpload, setShowUpload] = useState(false)
     const [preflightDoc, setPreflightDoc] = useState<OcrDoc | null>(null)
     const [processingDoc, setProcessingDoc] = useState<string | null>(null)
@@ -279,7 +285,7 @@ export default function OCRTracking({ onLogout, onNavigate, onConvertDocument }:
     return (
         <div className="min-h-screen bg-background font-sans text-foreground pb-10">
 
-            <Navbar onLogout={onLogout} activeTab="OCR" onNavigateToWorkspace={() => onNavigate('ocr-tracking')} onNavigate={onNavigate} leftSlot={<InlineExperienceSwitcher />} />
+            <Navbar onLogout={onLogout} activeTab="OCR" onNavigateToWorkspace={() => onNavigate('ocr-tracking')} onNavigate={onNavigate} leftSlot={navbarSwitcher ? <InlineExperienceSwitcher /> : undefined} hiddenTabs={navbarHiddenTabs} tabBadges={navbarTabBadges} />
 
             {/* DE1.7 · Diego 2026-09-02 · breadcrumb movido DEBAJO del navbar,
                 dentro del content area (alineado con gostrata.app premain).

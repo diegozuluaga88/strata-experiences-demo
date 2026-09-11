@@ -79,6 +79,9 @@ import { LelandStrataShell, LelandInboxApp, LelandSeradexApp, LelandReviewQueueA
 // Time Tracker · lifted from config-evolution/time-tracker · feature-module
 // with defaultApp + hideChrome · renders WeeklyGrid + Team View directly
 import TimeTrackerApp from "./features/time-tracker/TimeTrackerApp"
+// ST-1169 · ACK vs PO · Diego 2026-09-09 · feature-module standalone
+// (same shape as Time Tracker · defaultApp + hideChrome · steps=[]).
+import AckVsPoApp from "./features/ack-vs-po/AckVsPoApp"
 
 import {
   HomeIcon,
@@ -87,6 +90,7 @@ import {
   UserGroupIcon,
   ArchiveBoxIcon,
   ArrowsRightLeftIcon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline'
 
 import logoLightBrand from './assets/logo-light-brand.png'
@@ -271,13 +275,20 @@ function App() {
   const isCLC = demoProfile.id === 'clc';
   const isInboundOutbound = demoProfile.id === 'inbound-outbound';
   const isTimeTracker = demoProfile.id === 'time-tracker';
+  const isAckVsPo = demoProfile.id === 'ack-vs-po';
   // TT.53/54/56 · Diego 2026-09-08 · profiles que ya montan su PROPIA Navbar
   // de producción (Expert Hub · Quote Converter después de S4.a). El host
   // oculta su Navbar para no duplicar chrome · el switcher se integra dentro
   // del navbar prod vía leftSlot en el wrapper (TT.55 pattern).
   const hasOwnProdNavbar =
     demoProfile.defaultApp === 'expert-hub-published' ||
-    demoProfile.defaultApp === 'quote-converter';
+    demoProfile.defaultApp === 'quote-converter' ||
+    // ST-1169 · Diego 2026-09-09 · ACK vs PO usa el navbar prod del Expert
+    // Hub (deps/Navbar) que YA incluye ActionCenter real (agregado como
+    // adaptación al lifted file, reemplazando el Bell stub original). Zero
+    // duplicación de chrome · notif del Action Center funcional per
+    // memoria [[feedback-notifications-action-center]].
+    demoProfile.defaultApp === 'ack-vs-po';
 
   // Pages hidden for inbound-outbound profile (manufacturer scope only).
   // Per Liliana team review: CRM placeholder + dealer-side widgets out of scope.
@@ -363,9 +374,19 @@ function App() {
     { name: 'Time Tracker', page: 'time-tracker', icon: ClockIcon },
   ];
 
+  // ST-1169 · Diego 2026-09-09 · single-item nav for ACK vs PO standalone.
+  // ExpertHubComparisons trae su propio Navbar interno · este array
+  // solo se usa cuando el host podría renderear su navbar (no en este
+  // profile porque hideChrome: true) · lo dejamos por paridad con
+  // timeTrackerNav en caso de cambios futuros.
+  const ackVsPoNav = [
+    { name: 'ACK vs PO', page: 'ack-vs-po', icon: DocumentTextIcon },
+  ];
+
   // Pick the nav for the active profile (works with or without demo tour).
   const profileNav =
-    isTimeTracker ? timeTrackerNav
+    isAckVsPo ? ackVsPoNav
+    : isTimeTracker ? timeTrackerNav
     : isCLC ? clcNav
     : isOfficeworks ? officeworksNav
     : isWorkspaces ? workspacesNav
@@ -690,6 +711,14 @@ function App() {
         // Empty steps + hideChrome + defaultApp='time-tracker' land the user
         // straight on WeeklyGrid + TeamView without the tour overlay.
         return <TimeTrackerApp />;
+      case 'ack-vs-po':
+        // ST-1169 · Diego 2026-09-09 · ACK vs PO standalone.
+        // Empty steps + hideChrome + defaultApp='ack-vs-po' land the user
+        // straight on the Comparisons view (grid + list) without the tour
+        // overlay. Intake dual-trigger (Action Center notif + drop zone),
+        // discrepancy pre-preview and staging view are agregados en Fase
+        // 1.B-3 (ver plan en ~/.claude/plans/cuddly-greeting-meadow.md).
+        return <AckVsPoApp />;
       default:
         return null;
     }

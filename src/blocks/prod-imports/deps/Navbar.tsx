@@ -12,10 +12,17 @@ import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import { useTheme } from 'strata-design-system'
 import { useTenant } from './TenantContext'
-import { ScanEye, MessageSquare, Bell, Moon, Sun, LogOut, ChevronDown, Building2, Check, KeyRound, Receipt, GitCompare } from 'lucide-react'
+import { ScanEye, MessageSquare, Moon, Sun, LogOut, ChevronDown, Building2, Check, KeyRound, Receipt, GitCompare } from 'lucide-react'
 import logoLightBrand from '../../../assets/logo-light-brand.png'
 import logoDarkBrand from '../../../assets/logo-dark-brand.png'
 import ChangePasswordModal from './auth/ChangePasswordModal'
+// ST-1169 · Diego 2026-09-09 · adaptation al lifted deps/Navbar: reemplazar
+// el <Bell> stub original (sin onClick · line 167 prod) por el ActionCenter
+// real del host · así los profiles que corren SOLO este navbar interno
+// (expert-hub-published, quote-converter, ack-vs-po) tienen notificaciones
+// funcionales sin depender del navbar del host. Preserva SIEMPRE-en-Action-
+// Center mandate per memoria [[feedback-notifications-action-center]].
+import ActionCenter from '../../../components/notifications/ActionCenter'
 
 type NavTab = 'OCR' | 'Feedback'
 
@@ -26,9 +33,16 @@ interface NavbarProps {
     onNavigate: (page: any) => void;
     /** TT.55 · slot opcional (experiences-demo only) · se pinta después del Tenant · antes del center-nav. */
     leftSlot?: ReactNode;
+    /** ST-1169 · Diego 2026-09-09 · lista de tab names a ocultar del center-nav.
+     *  Usado por AckVsPoApp para replicar el navbar minimal del ack-vs-po-demo
+     *  standalone (DE1.5 · Transactions oculto). */
+    hiddenTabs?: string[];
+    /** ST-1169 · Diego 2026-09-09 · counter badges por tab name · pintado a
+     *  la derecha del icon (ej. {Comparisons: 5} · muestra count de pending). */
+    tabBadges?: Record<string, number>;
 }
 
-export default function Navbar({ onLogout, activeTab = 'OCR', onNavigate, leftSlot }: NavbarProps) {
+export default function Navbar({ onLogout, activeTab = 'OCR', onNavigate, leftSlot, hiddenTabs, tabBadges }: NavbarProps) {
     const { theme, toggleTheme } = useTheme()
     const { user } = useAuth()
     const { selectedTenants, tenants, toggleTenant, selectAll } = useTenant()
@@ -55,7 +69,7 @@ export default function Navbar({ onLogout, activeTab = 'OCR', onNavigate, leftSl
         { name: 'Comparisons', label: 'Comparisons', page: 'comparisons', icon: GitCompare },
         { name: 'Feedback', label: 'Feedback', page: 'feedback', icon: MessageSquare },
     ]
-    const visibleTabs = tabs.filter(t => !t.hidden)
+    const visibleTabs = tabs.filter(t => !t.hidden && !(hiddenTabs?.includes(t.name)))
 
     const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Diego Zuluaga'
     const userRole = (user?.user_metadata as { role?: string } | undefined)?.role ?? 'Expert'
@@ -136,6 +150,7 @@ export default function Navbar({ onLogout, activeTab = 'OCR', onNavigate, leftSl
                         {visibleTabs.map(tab => {
                             const isActive = activeTab === tab.name
                             const Icon = tab.icon
+                            const badge = tabBadges?.[tab.name]
                             return (
                                 <button
                                     key={tab.name}
@@ -152,6 +167,18 @@ export default function Navbar({ onLogout, activeTab = 'OCR', onNavigate, leftSl
                                     }`}>
                                         {tab.label}
                                     </span>
+                                    {/* ST-1169 Fase 4.3 · Diego 2026-09-09 · badge count
+                                        (ej. Comparisons · N pendientes) · siempre visible
+                                        aunque el label esté colapsado por hover. */}
+                                    {typeof badge === 'number' && badge > 0 && (
+                                        <span className={`ml-1.5 relative z-10 text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center ${
+                                            isActive
+                                                ? 'bg-primary-foreground/20 text-primary-foreground'
+                                                : 'bg-destructive/15 text-destructive'
+                                        }`}>
+                                            {badge}
+                                        </span>
+                                    )}
                                 </button>
                             )
                         })}
@@ -159,13 +186,13 @@ export default function Navbar({ onLogout, activeTab = 'OCR', onNavigate, leftSl
 
                     {/* Right: Actions */}
                     <div className="flex items-center gap-1 shrink-0">
-                        {/* Bell */}
-                        <button
-                            className="flex items-center justify-center h-9 w-9 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
-                            title="Notifications"
-                        >
-                            <Bell className="w-4 h-4" />
-                        </button>
+                        {/* ST-1169 · Diego 2026-09-09 · ActionCenter real
+                            (reemplaza el stub Bell prod). Los profiles con
+                            navbar prod propio (expert-hub-published · ack-vs-po
+                            · quote-converter) ahora tienen notificaciones
+                            funcionales · el guard interno por profile.id
+                            decide qué notifs se muestran. */}
+                        <ActionCenter />
 
                         {/* Theme Toggle */}
                         <button

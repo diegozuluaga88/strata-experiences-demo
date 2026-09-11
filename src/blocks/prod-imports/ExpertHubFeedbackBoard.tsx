@@ -14,6 +14,12 @@ import InlineExperienceSwitcher from '../../components/navbar/InlineExperienceSw
 interface FeedbackBoardProps {
     onLogout: () => void
     onNavigate: (page: string) => void
+    /** ST-1169 · omit InlineExperienceSwitcher chip · default true. */
+    navbarSwitcher?: boolean
+    /** ST-1169 · tabs a ocultar del center-nav. */
+    navbarHiddenTabs?: string[]
+    /** ST-1169 · badge counts por tab name. */
+    navbarTabBadges?: Record<string, number>
 }
 
 export type Severity = 'Critical' | 'High' | 'Medium' | 'Low'
@@ -419,7 +425,7 @@ function stateClasses(s: FeedbackState): string {
     }
 }
 
-export default function FeedbackBoard({ onLogout, onNavigate }: FeedbackBoardProps) {
+export default function FeedbackBoard({ onLogout, onNavigate, navbarSwitcher = true, navbarHiddenTabs, navbarTabBadges }: FeedbackBoardProps) {
     const [activeTab, setActiveTab] = useState('all')
     const [query, setQuery] = useState('')
     const [stateOverrides, setStateOverrides] = useState<Record<string, FeedbackState>>(() => loadStateOverrides())
@@ -561,7 +567,7 @@ export default function FeedbackBoard({ onLogout, onNavigate }: FeedbackBoardPro
 
     return (
         <div className="min-h-screen bg-background font-sans text-foreground pb-10">
-            <Navbar onLogout={onLogout} activeTab="Feedback" onNavigateToWorkspace={() => onNavigate('ocr-tracking')} onNavigate={onNavigate} leftSlot={<InlineExperienceSwitcher />} />
+            <Navbar onLogout={onLogout} activeTab="Feedback" onNavigateToWorkspace={() => onNavigate('ocr-tracking')} onNavigate={onNavigate} leftSlot={navbarSwitcher ? <InlineExperienceSwitcher /> : undefined} hiddenTabs={navbarHiddenTabs} tabBadges={navbarTabBadges} />
 
             <div className="pt-24 px-4 max-w-screen-2xl mx-auto space-y-6">
                 {/* TT.60 · breadcrumb dentro del content · parity con OCR/Comparisons. */}

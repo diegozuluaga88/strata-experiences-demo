@@ -8,9 +8,29 @@
 // existía en la OcrDocCard · abre el `ComparisonReviewModal` vía el
 // `ComparisonLauncher` que ya está montado en `Comparisons.tsx`.
 
-import { FileText, CheckCircle2, AlertCircle, GitCompare, Send, Trash2 } from 'lucide-react'
+import { FileText, CheckCircle2, AlertCircle, GitCompare, Send, Trash2, AlertTriangle, Download } from 'lucide-react'
 import DocTypeChip from '../../ocr/DocTypeChip'
 import { avatarGradient, getTeamMember, CURRENT_USER_ID } from '../../team/teamMembers'
+
+// ST-1169 Fase 1.C · Diego 2026-09-09 · diff summary preview per card.
+// Resuelve el pain point catastrófico del proceso Officeworks (aceptar sin
+// ver primero qué se acepta). Deriva del status del ComparisonDoc + un mock
+// local de diff counts por ACK id para el prototype.
+// Fase 3 va a wire esto contra la real comparison data (report.discrepancies).
+type DiffSummary = { kind: 'diffs'; total: number; critical: number } | { kind: 'match' } | { kind: 'pending' }
+
+const DIFF_MOCK: Record<string, DiffSummary> = {
+    // ACKs con status 'Discrepancy' en el mock del ExpertHubComparisons
+    'ACK-8840': { kind: 'diffs', total: 12, critical: 3 },
+    'ACK-7839': { kind: 'diffs', total: 2, critical: 1 },
+}
+
+function summarizeDiffs(docId: string, status: 'Reviewed' | 'Pending' | 'Discrepancy' | 'Completed'): DiffSummary {
+    const override = DIFF_MOCK[docId]
+    if (override) return override
+    if (status === 'Reviewed' || status === 'Completed') return { kind: 'match' }
+    return { kind: 'pending' }
+}
 
 export type CompareDocType = 'Purchase Order' | 'Acknowledgment'
 export type CompareReviewStatus = 'Reviewed' | 'Pending For Review'
@@ -31,6 +51,10 @@ export interface ComparisonCardData {
     // DE1.21 · Diego 2026-09-03 · reviewer asignado · el avatar muestra
     // sus iniciales · fallback 'me' (Diego Zuluaga).
     assigneeId?: string
+    // ST-1169 Fase 1.C · Diego 2026-09-09 · status del compare para derivar
+    // el diff summary badge (match / diffs / pending). Opcional para
+    // backward compat con consumers que no lo pasan.
+    status?: 'Pending' | 'Reviewed' | 'Discrepancy' | 'Completed'
 }
 
 interface Props {
@@ -39,6 +63,9 @@ interface Props {
     onPreview?: () => void
     onDelete?: () => void
     onSend?: () => void
+    // ST-1169 · Diego 2026-09-09 · download the transaction PDF (siempre
+    // disponible per video · users lo usan para comparar en otros sistemas).
+    onDownload?: () => void
     // DE1.19 · Diego 2026-09-03 · default true · pasar false para ocultar
     // el botón Compare (ej. cards Purchase Orders donde el flujo aún no aplica).
     showCompare?: boolean
@@ -61,11 +88,15 @@ function formatRelativeTime(input: string): string {
     return input
 }
 
-export default function ComparisonDocCard({ doc, onCompare, onPreview, onDelete, onSend, showCompare = true }: Props) {
+export default function ComparisonDocCard({ doc, onCompare, onPreview, onDelete, onSend, onDownload, showCompare = true }: Props) {
     const isReviewed = doc.reviewStatus === 'Reviewed'
     const hasCounterpart = !!doc.relatedPo
     // DE1.21 · Diego 2026-09-03 · avatar del reviewer (persona), no vendor.
     const reviewer = getTeamMember(doc.assigneeId ?? CURRENT_USER_ID) ?? getTeamMember(CURRENT_USER_ID)!
+    // ST-1169 Fase 1.C · Diego 2026-09-09 · diff preview solo aplica a ACKs
+    // (los POs no se "acknowledgen" · el compare se dispara desde el ACK).
+    const showDiffSummary = doc.type === 'Acknowledgment' && hasCounterpart
+    const diffSummary = showDiffSummary ? summarizeDiffs(doc.id, doc.status ?? 'Pending') : null
 
     return (
         <div className="group bg-card border border-border rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
@@ -103,6 +134,42 @@ export default function ComparisonDocCard({ doc, onCompare, onPreview, onDelete,
                         <span className="text-muted-foreground">Line Items</span>
                         <span className="font-semibold text-foreground">{doc.lineItems} line items</span>
                     </div>
+                    {/* ST-1169 Fase 1.C · Diego 2026-09-09 · discrepancies
+                        summary preview · resuelve P3 catastrophic del
+                        proceso Officeworks (aceptar sin ver discrepancias
+                        primero). Vocabulario alineado con el enum
+                        CompareStatus 'Discrepancy' que el team ya usa. */}
+                    {diffSummary && (
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Discrepancies</span>
+                            {diffSummary.kind === 'diffs' && (
+                                <span
+                                    title={`${diffSummary.total} field discrepancies · ${diffSummary.critical} critical`}
+                                    className="inline-flex items-center gap-1.5 font-semibold text-destructive"
+                                >
+                                    <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                                    {diffSummary.total} · {diffSummary.critical} critical
+                                </span>
+                            )}
+                            {diffSummary.kind === 'match' && (
+                                <span
+                                    title="All fields match · no discrepancies"
+                                    className="inline-flex items-center gap-1.5 font-semibold text-success"
+                                >
+                                    <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                                    None
+                                </span>
+                            )}
+                            {diffSummary.kind === 'pending' && (
+                                <span
+                                    title="Not analyzed yet · run compare to see discrepancies"
+                                    className="font-medium text-muted-foreground"
+                                >
+                                    Not analyzed
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="border-t border-border pt-3 flex items-center justify-between">
@@ -132,6 +199,28 @@ export default function ComparisonDocCard({ doc, onCompare, onPreview, onDelete,
                             className="p-1.5 rounded-md text-foreground hover:bg-muted transition-colors"
                         >
                             <FileText className="h-4 w-4" />
+                        </button>
+                        {/* ST-1169 · Diego 2026-09-09 · Download the transaction PDF ·
+                            siempre disponible (users lo usan para comparar en otros
+                            sistemas per video CORE) · tooltip menciona discrepancias
+                            si aplica para que el user sepa el estado antes de descargar. */}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                if (onDownload) return onDownload()
+                                // Default fallback · trigger download simulado
+                                const a = document.createElement('a')
+                                a.href = `data:text/plain;charset=utf-8,${encodeURIComponent(`# ${doc.name}\nVendor: ${doc.vendor}\nLine items: ${doc.lineItems}\nStatus: ${doc.status ?? 'Unknown'}\n`)}`
+                                a.download = doc.name.replace(/\.pdf$/i, '.txt')
+                                a.click()
+                            }}
+                            title={diffSummary?.kind === 'diffs'
+                                ? `Download ${doc.name} · has ${diffSummary.total} discrepancies (${diffSummary.critical} critical)`
+                                : `Download ${doc.name}`}
+                            aria-label="Download transaction document"
+                            className="p-1.5 rounded-md text-foreground hover:bg-muted transition-colors"
+                        >
+                            <Download className="h-4 w-4" />
                         </button>
                         {/* Compare · NUEVO icono de acción · abre ComparisonReviewModal.
                             DE1.19 · gated por `showCompare` (oculto en cards PO por ahora).

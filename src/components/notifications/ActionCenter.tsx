@@ -482,6 +482,28 @@ const CONTINUA_STEP_NOTIFICATIONS: Record<string, Notification> = {
     },
 };
 
+// ST-1169 · Diego 2026-09-09 · ACK vs PO · Flow A trigger.
+// Notif de Action Center · trigger del auto-pull cuando un vendor envía un
+// nuevo ACK que matchea con un PO existente. Diseño minimalista (mandate
+// del plan): 1 fila · 1 sola acción "Compare with PO" (verb + object per
+// DS rules 14-microcopy) · sin adornos decorativos.
+// El handler en onActionClick dispara un CustomEvent que el AckVsPoApp
+// escucha para arrancar el staging view (Fase 2.B).
+const ACK_VS_PO_NOTIFICATION: Notification = {
+    id: 'ack-vs-po-new-ack',
+    type: 'ack_received',
+    priority: 'high',
+    title: 'New ACK · PO-2026-1042 · Herman Miller',
+    message: 'Vendor sent acknowledgement · 118 line items · ready to auto-compare.',
+    meta: 'AckIntakeAgent · via EDI · 2 min ago',
+    timestamp: '2 min ago',
+    unread: true,
+    actions: [
+        { label: 'Compare with PO', primary: true },
+    ],
+    persona: 'dealer',
+};
+
 // F41.a Task B · Workspaces expense management notifications (desktop steps).
 // Reemplaza 3 banners custom "STRATA · ACTION REQUIRED" inline en las scenes
 // (ApprovalQueueScene · APReviewQueueScene · CFODashboardScene) por notifs
@@ -704,15 +726,27 @@ export default function ActionCenter({ defaultOpen = false }: ActionCenterProps 
     const [coiDismissed, setCoiDismissed] = useState<Set<string>>(new Set());
     const isCoiActive = !!coiStepConfig && !coiDismissed.has(coiStepConfig.id);
 
+    // ST-1169 · Diego 2026-09-09 · ACK vs PO Flow A notification.
+    // Guard por profile.id === 'ack-vs-po' para no cross-firing en otros
+    // profiles. La notif no está gated por currentStep porque el profile
+    // no tiene guided tour (steps: []); se muestra siempre que el user
+    // esté en el profile ack-vs-po y no la haya dismisseado.
+    const isAckVsPoProfile = activeProfile?.id === 'ack-vs-po';
+    const [ackVsPoDismissed, setAckVsPoDismissed] = useState(false);
+    const isAckVsPoActive = isAckVsPoProfile && !ackVsPoDismissed;
+
     const filteredNotifications = useMemo(() => {
         const currentTab = tabs.find(t => t.id === activeTab);
         const continuaEntry = isContinuaActive ? [continuaStepConfig!] : [];
         const workspacesEntry = isWorkspacesActive ? [workspacesStepConfig!] : [];
         const coiEntry = isCoiActive ? [coiStepConfig!] : [];
         const duplerEntry = shouldShowDuplerD11 ? [DUPLER_D11_NOTIFICATION] : [];
+        // ST-1169 · Diego 2026-09-09 · ACK vs PO Flow A notification.
+        const ackVsPoEntry = isAckVsPoActive ? [ACK_VS_PO_NOTIFICATION] : [];
         // F44.b.4 · Para COI, mostrar solo el step-specific + mockNotifications
         // relevantes (ej. shipment/PO). No mostrar entries de otros profiles.
-        const base = [...coiEntry, ...continuaEntry, ...workspacesEntry, ...duplerEntry, ...mockNotifications];
+        // ST-1169 · ACK vs PO va PRIMERO en el array para aparecer al top.
+        const base = [...ackVsPoEntry, ...coiEntry, ...continuaEntry, ...workspacesEntry, ...duplerEntry, ...mockNotifications];
         return base
             .filter(n => currentTab?.filter(n))
             .filter(n =>
@@ -720,17 +754,19 @@ export default function ActionCenter({ defaultOpen = false }: ActionCenterProps 
                 n.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 n.meta.toLowerCase().includes(searchQuery.toLowerCase())
             );
-    }, [activeTab, searchQuery, shouldShowDuplerD11, isWorkspacesActive, workspacesStepConfig, isContinuaActive, continuaStepConfig, isCoiActive, coiStepConfig]);
+    }, [activeTab, searchQuery, shouldShowDuplerD11, isWorkspacesActive, workspacesStepConfig, isContinuaActive, continuaStepConfig, isCoiActive, coiStepConfig, isAckVsPoActive]);
 
     const urgentCount = (shouldShowDuplerD11 ? 1 : 0)
         + (isWorkspacesActive && workspacesStepConfig?.priority === 'high' ? 1 : 0)
         + (isContinuaActive && continuaStepConfig?.priority === 'high' ? 1 : 0)
         + (isCoiActive && coiStepConfig?.priority === 'high' ? 1 : 0)
+        + (isAckVsPoActive ? 1 : 0)  // ST-1169 · always high priority
         + mockNotifications.filter(n => n.priority === 'high').length;
     const totalCount = (shouldShowDuplerD11 ? 1 : 0)
         + (isWorkspacesActive ? 1 : 0)
         + (isContinuaActive ? 1 : 0)
         + (isCoiActive ? 1 : 0)
+        + (isAckVsPoActive ? 1 : 0)  // ST-1169
         + mockNotifications.filter(n => n.unread).length;
 
     // Flow 1 tabs for step 1.10 — single tab since only 1 notification
@@ -845,6 +881,12 @@ export default function ActionCenter({ defaultOpen = false }: ActionCenterProps 
                 return (<>
                     <PopoverButton
                         ref={bellRef}
+                        onClick={() => {
+                            // ST-1169 · Diego 2026-09-11 · reset dismissed state on bell click
+                            // para que el flow A pueda re-triggerse desde la notif sin reload.
+                            // Impacta solo al profile ack-vs-po (guard interno en isAckVsPoActive).
+                            if (isAckVsPoProfile) setAckVsPoDismissed(false)
+                        }}
                         className={clsx(
                         "relative p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors outline-none",
                         (open || isStepAutoOpen || sampleTextileActive) ? "bg-black/5 dark:bg-white/10 text-foreground" : "text-muted-foreground hover:text-foreground dark:hover:text-white"
@@ -928,6 +970,21 @@ export default function ActionCenter({ defaultOpen = false }: ActionCenterProps 
                                                                 nextStep();
                                                             }
                                                             setWorkspacesDismissed(prev => new Set(prev).add(notification.id));
+                                                            setTimeout(() => {
+                                                                if (popoverOpenRef.current) bellRef.current?.click();
+                                                            }, 50);
+                                                        }
+                                                        // ST-1169 · Diego 2026-09-09 · ACK vs PO CTA "Compare with PO".
+                                                        // Dispara CustomEvent · AckVsPoApp lo escucha en Fase 2 para
+                                                        // arrancar el staging view (auto-pull sim del PO). Dismiss
+                                                        // esconde la notif del registry.
+                                                        if (notification.id === 'ack-vs-po-new-ack') {
+                                                            if (action === 'Compare with PO') {
+                                                                window.dispatchEvent(new CustomEvent('ack-vs-po:start-compare', {
+                                                                    detail: { poNumber: 'PO-2026-1042', vendor: 'Herman Miller' },
+                                                                }));
+                                                            }
+                                                            setAckVsPoDismissed(true);
                                                             setTimeout(() => {
                                                                 if (popoverOpenRef.current) bellRef.current?.click();
                                                             }, 50);

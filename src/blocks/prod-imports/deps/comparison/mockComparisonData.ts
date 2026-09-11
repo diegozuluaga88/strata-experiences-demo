@@ -293,9 +293,24 @@ const STEELCASE_CRITICAL: ComparisonReport = {
         { field_label: 'Total Amount',            category: 'pricing',   po_value: '$8,652.00',                 ack_value: '$8,652.00',                  matched: true  },
     ],
     validated_line_items: [
-        { line: 1, product_number: 'Series 2 (442A1B)', description: 'Task Chair · Ergonomic Series 2',  po_quantity: 12, ack_quantity: 3, po_unit_price: '$721.00', ack_unit_price: '$721.00', matched: false },
-        { line: 2, product_number: 'STC-DESK-66',        description: 'Adjustable Desk · 66" White',      po_quantity: 4,  ack_quantity: 4, po_unit_price: '$0.00',   ack_unit_price: '$0.00',   matched: true  },
-        { line: 3, product_number: 'STC-MON-32',         description: 'Monitor Arm · Dual',               po_quantity: 4,  ack_quantity: 4, po_unit_price: '$0.00',   ack_unit_price: '$0.00',   matched: true  },
+        // ST-1169 · Diego 2026-09-09 · expandido de 3 → 15 items para
+        // credibilidad de demo · mock representa un PO típico Steelcase
+        // (workstations + task seating + accessories + freight).
+        { line: 1,  product_number: 'Series 2 (442A1B)', description: 'Task Chair · Ergonomic Series 2',            po_quantity: 12, ack_quantity: 3,  po_unit_price: '$721.00',   ack_unit_price: '$721.00',   matched: false },
+        { line: 2,  product_number: 'STC-DESK-66',        description: 'Adjustable Desk · 66" White',                po_quantity: 4,  ack_quantity: 4,  po_unit_price: '$1,450.00', ack_unit_price: '$1,450.00', matched: true  },
+        { line: 3,  product_number: 'STC-MON-32',         description: 'Monitor Arm · Dual',                         po_quantity: 4,  ack_quantity: 4,  po_unit_price: '$425.00',   ack_unit_price: '$425.00',   matched: true  },
+        { line: 4,  product_number: 'STC-CBL-6',          description: 'Cable Tray · 6-outlet · under-desk',         po_quantity: 4,  ack_quantity: 4,  po_unit_price: '$185.00',   ack_unit_price: '$185.00',   matched: true  },
+        { line: 5,  product_number: 'STC-THINK-M2',       description: 'Think Chair · Mid-back · Black',             po_quantity: 6,  ack_quantity: 6,  po_unit_price: '$980.00',   ack_unit_price: '$1,040.00', matched: false },
+        { line: 6,  product_number: 'STC-FLEX-72',        description: 'FrameOne Bench · 72" · Warm Walnut',         po_quantity: 2,  ack_quantity: 2,  po_unit_price: '$2,315.00', ack_unit_price: '$2,315.00', matched: true  },
+        { line: 7,  product_number: 'STC-PANEL-58',       description: 'Answer Panel · 58"H · Fabric Charcoal',      po_quantity: 8,  ack_quantity: 6,  po_unit_price: '$695.00',   ack_unit_price: '$695.00',   matched: false },
+        { line: 8,  product_number: 'STC-STOR-3H',        description: 'Universal Storage · 3-high · Silver',        po_quantity: 4,  ack_quantity: 4,  po_unit_price: '$1,120.00', ack_unit_price: '$1,120.00', matched: true  },
+        { line: 9,  product_number: 'STC-LEAP-V2',        description: 'Leap Chair · V2 · with headrest',            po_quantity: 3,  ack_quantity: 3,  po_unit_price: '$1,395.00', ack_unit_price: '$1,395.00', matched: true  },
+        { line: 10, product_number: 'STC-CONF-96',        description: 'Media:scape · Conf Table · 96"',             po_quantity: 1,  ack_quantity: 1,  po_unit_price: '$4,850.00', ack_unit_price: '$4,850.00', matched: true  },
+        { line: 11, product_number: 'STC-CROSS-8',        description: 'Crossroads Bench · 8-seat · Grey',           po_quantity: 1,  ack_quantity: 1,  po_unit_price: '$3,120.00', ack_unit_price: '$3,120.00', matched: true  },
+        { line: 12, product_number: 'STC-COALESSE',       description: 'Coalesse Lounge · Massaud · Fog',            po_quantity: 2,  ack_quantity: 2,  po_unit_price: '$2,690.00', ack_unit_price: '$2,690.00', matched: true  },
+        { line: 13, product_number: 'STC-ROAM-M',         description: 'Roam Mobile Stand · Media · M',              po_quantity: 3,  ack_quantity: 3,  po_unit_price: '$540.00',   ack_unit_price: '$540.00',   matched: true  },
+        { line: 14, product_number: 'STC-SCOOP-B',        description: 'Scoop Stool · Bar-height · Slate',           po_quantity: 6,  ack_quantity: 6,  po_unit_price: '$345.00',   ack_unit_price: '$345.00',   matched: true  },
+        { line: 15, product_number: 'STC-FREIGHT',        description: 'Freight · Andreu World Shipping & Handling', po_quantity: 1,  ack_quantity: 1,  po_unit_price: '$1,240.00', ack_unit_price: '$1,325.00', matched: false },
     ],
     created_at: '2026-04-09T14:30:00Z',
 }

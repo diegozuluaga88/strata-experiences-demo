@@ -26,6 +26,9 @@ import { CRM_STEPS, CRM_STEP_BEHAVIOR, CRM_STEP_MESSAGES, CRM_SELF_INDICATED } f
 // with defaultApp + hideChrome so DemoSidebar/Spotlight/StepBanner do not
 // render around the app (matches the standalone experience).
 import { TIME_TRACKER_STEPS, TIME_TRACKER_STEP_BEHAVIOR, TIME_TRACKER_STEP_MESSAGES, TIME_TRACKER_SELF_INDICATED } from './profiles/time-tracker';
+// ST-1169 · Diego 2026-09-09 · ACK vs PO · feature-module standalone
+// (same shape as Time Tracker · defaultApp + hideChrome · steps=[]).
+import { ACK_VS_PO_STEPS, ACK_VS_PO_STEP_BEHAVIOR, ACK_VS_PO_STEP_MESSAGES, ACK_VS_PO_SELF_INDICATED } from './profiles/ack-vs-po';
 
 export type SimulationApp =
     | 'dashboard' | 'expert-hub' | 'email-marketplace'
@@ -44,7 +47,9 @@ export type SimulationApp =
     | 'officeworks-intake' | 'officeworks-design' | 'officeworks-spec-check' | 'officeworks-submission' | 'officeworks-dashboard' | 'officeworks-labor' | 'officeworks-sales'
     | 'clc-calendar' | 'clc-sharepoint' | 'clc-intake' | 'clc-dashboard'
     // Time Tracker · single-app profile · renderea WeeklyGrid + TeamView
-    | 'time-tracker';
+    | 'time-tracker'
+    // ST-1169 · ACK vs PO · single-app profile · renderea intake + comparisons
+    | 'ack-vs-po';
 
 export interface DemoStep {
     id: string;
@@ -59,7 +64,7 @@ export interface DemoStep {
     flowId?: string;
 }
 
-export type DemoProfileId = 'acme' | 'coi' | 'dupler' | 'ops' | 'continua' | 'wrg' | 'mbi' | 'leland' | 'bfi' | 'workspaces' | 'officeworks' | 'inbound-outbound' | 'clc' | 'crm' | 'expert-hub' | 'quote-converter' | 'time-tracker';
+export type DemoProfileId = 'acme' | 'coi' | 'dupler' | 'ops' | 'continua' | 'wrg' | 'mbi' | 'leland' | 'bfi' | 'workspaces' | 'officeworks' | 'inbound-outbound' | 'clc' | 'crm' | 'expert-hub' | 'quote-converter' | 'time-tracker' | 'ack-vs-po';
 
 /** Icon aliases surface as Lucide icons via components/RoleSwitcher.tsx's ICON_MAP. */
 export type RoleIcon =
@@ -323,6 +328,35 @@ export const DEMO_PROFILES: DemoProfile[] = [
         stepBehavior: TIME_TRACKER_STEP_BEHAVIOR,
         stepMessages: TIME_TRACKER_STEP_MESSAGES,
         selfIndicatedSteps: TIME_TRACKER_SELF_INDICATED,
+    },
+
+    // ─── ACK vs PO · 2026-09-09 · ST-1169 ──────────────────────────────────
+    // Diego 2026-09-09 · CEO Matt Danyliw pidió automatizar el compare
+    // manual de 12 pasos entre Order Bahn + Officeworks CORE. Feature-module
+    // con defaultApp + hideChrome (mismo patrón que time-tracker) · sin
+    // guided tour. El AckVsPoApp renderea la landing con Comparisons
+    // (grid + list) · intake dual-trigger (notif Action Center + drop zone)
+    // se agrega en Fase 1.B. Ver plan en ~/.claude/plans/cuddly-greeting-meadow.md
+    {
+        id: 'ack-vs-po',
+        title: 'ACK vs PO',
+        subtitle: 'Compare acknowledgement vs purchase order · auto-pull or PDF drop',
+        name: 'ACK vs PO',
+        companyName: '',
+        experienceLabel: 'ACK vs PO',
+        description: 'Automated ACK vs PO comparison replacing the 12-step manual process across Order Bahn + Officeworks CORE · dual flow: connected auto-pull or PDF drop with OCR',
+        icon: '📋',
+        defaultApp: 'ack-vs-po',
+        experienceKind: 'feature-module',
+        maturity: 'demo',
+        sourceLabel: 'ack-vs-po-demo · ST-1169 (Sep 2026)',
+        lastUpdated: '2026-09-09',
+        demoOrigin: 'in-progress',
+        hideChrome: true,
+        steps: ACK_VS_PO_STEPS,
+        stepBehavior: ACK_VS_PO_STEP_BEHAVIOR,
+        stepMessages: ACK_VS_PO_STEP_MESSAGES,
+        selfIndicatedSteps: ACK_VS_PO_SELF_INDICATED,
     },
 
     // ─── FEATURE MODULES (8) · in CSV row order ────────────────────────────

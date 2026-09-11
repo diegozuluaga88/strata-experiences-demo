@@ -13,8 +13,21 @@
 // Adaptations al shell experiences: import paths remapped `./components/*` →
 // `./deps/*` · Navbar wire agrega leftSlot={<InlineExperienceSwitcher />}
 // para el chip Experience integrado (TT.55/58 pattern).
-import { useState, useMemo } from 'react'
-import { Search, List, LayoutGrid, FileText, GitCompare, CheckCircle2, AlertTriangle, FileSearch } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import { Search, List, LayoutGrid, FileText, GitCompare, CheckCircle2, AlertTriangle, FileSearch, Cloud } from 'lucide-react'
+
+// ST-1169 · Flow C · Diego 2026-09-11 · search-by-PO detection.
+// Cuando el user escribe/pastea un PO number en el search input:
+//   · Si hay match local → filtra normalmente (comportamiento actual)
+//   · Si NO hay match local Y query tiene forma de PO → aparece hint
+//     "Pull PO-XXX from Officeworks CORE →" que dispatcha el evento
+//     existente `ack-vs-po:start-compare` (reusa Flow A processing).
+// Traducción del step 4-5 del proceso manual CORE (copiar PO del ACK
+// preview + pastear en CORE search + ver lines).
+const PO_PATTERN = /^PO[\s-]?\d{2,}[\s-]?\d{0,}$/i
+function normalizePo(q: string): string {
+    return q.trim().toUpperCase().replace(/\s+/g, '-')
+}
 import Navbar from './deps/Navbar'
 import Breadcrumbs from './deps/Breadcrumbs'
 import DocTypeChip from './deps/ocr/DocTypeChip'
@@ -31,6 +44,30 @@ import InlineExperienceSwitcher from '../../components/navbar/InlineExperienceSw
 interface ComparisonsProps {
     onLogout: () => void
     onNavigate: (page: string) => void
+    // ST-1169 Fase 1.D · Diego 2026-09-09 · esconder los 2 modales viejos
+    // (AckReconciliationModal + ResolveInconsistencyModal) que compiten con
+    // el flujo canónico ACK vs PO. Default false preserva el comportamiento
+    // existente para ExpertHubAppWrapper y otros consumers.
+    disableLegacyModals?: boolean
+    // ST-1169 Fase 1 fix · Diego 2026-09-09 · cuando el host ya monta su
+    // propio Navbar (con ActionCenter para las notifs), el consumer pasa
+    // hideNavbar=true para evitar duplicación de chrome. Default false.
+    hideNavbar?: boolean
+    // ST-1169 Fase 1.B (integrado) · Diego 2026-09-09 · slot renderizado
+    // en la toolbar del Comparisons card (al lado del search + view toggle).
+    // Aca vive el botón/dropzone del intake Flow B para que no compita con
+    // la lista como un banner separado.
+    intakeSlot?: React.ReactNode
+    // ST-1169 Fase 1.A (relocated) · Diego 2026-09-09 · banner sobre el
+    // comparisons card (donde antes vivía el Action Center bell) · trigger
+    // del Flow A auto-pull. Se pinta después del breadcrumb, antes del card.
+    notifBanner?: React.ReactNode
+    /** ST-1169 · omit InlineExperienceSwitcher chip del Navbar interno · default true. */
+    navbarSwitcher?: boolean
+    /** ST-1169 · tabs a ocultar del center-nav del Navbar interno. */
+    navbarHiddenTabs?: string[]
+    /** ST-1169 · badge counts por tab name del Navbar interno. */
+    navbarTabBadges?: Record<string, number>
 }
 
 type CompareStatus = 'Pending' | 'Reviewed' | 'Discrepancy' | 'Completed'
@@ -120,7 +157,7 @@ function statusClasses(s: CompareStatus): string {
     }
 }
 
-export default function Comparisons({ onLogout, onNavigate }: ComparisonsProps) {
+export default function Comparisons({ onLogout, onNavigate, disableLegacyModals = false, hideNavbar = false, intakeSlot, notifBanner, navbarSwitcher = true, navbarHiddenTabs, navbarTabBadges }: ComparisonsProps) {
     // DE1.19 · Diego 2026-09-03 · default 'ack' (era 'po') · en el flow
     // del demo el usuario arranca revisando Acknowledgements (donde vive
     // el botón Compare) · la tab PO existe pero por ahora sin acción compare.
@@ -136,35 +173,126 @@ export default function Comparisons({ onLogout, onNavigate }: ComparisonsProps) 
     const [compareDoc, setCompareDoc] = useState<ComparisonDoc | null>(null)
     const [isReconciliationOpen, setIsReconciliationOpen] = useState(false)
     const [resolveDoc, setResolveDoc] = useState<{ id: string; name: string; vendor: string; inconsistencyCount: number } | null>(null)
+    // ST-1169 · Diego 2026-09-09 · highlight de la card cuya comparación se
+    // acaba de completar via Flow A (notif Action Center) · dispatched como
+    // CustomEvent 'ack-vs-po:card-highlight' desde el AckVsPoApp. Auto-clear
+    // en 5s. Aplica ring lime + subtle scale bump para reconocerla.
+    const [highlightedAckId, setHighlightedAckId] = useState<string | null>(null)
+    // ST-1169 · Diego 2026-09-09 · cards net-new agregadas via Flow A/B commit ·
+    // dispatched como CustomEvent 'ack-vs-po:compare-committed' desde el
+    // AckVsPoApp. Se prepend al listado + highlight + toast Strata (no alert).
+    const [extraDocs, setExtraDocs] = useState<ComparisonDoc[]>([])
+    useEffect(() => {
+        const onHighlight = (e: Event) => {
+            const detail = (e as CustomEvent).detail as { ackId?: string }
+            if (!detail?.ackId) return
+            setActiveTab('ack') // switch a Acknowledgements para que el user vea la card
+            setHighlightedAckId(detail.ackId)
+            const t = setTimeout(() => setHighlightedAckId(null), 5000)
+            return () => clearTimeout(t)
+        }
+        const onCommitted = (e: Event) => {
+            const detail = (e as CustomEvent).detail as {
+                ackId?: string; poNumber?: string; vendor?: string;
+                action?: 'ACCEPT' | 'REJECT' | 'REQUEST_REVIEW';
+                source?: 'flowA' | 'flowB'; lineItems?: number;
+            }
+            if (!detail?.ackId || !detail?.poNumber) return
+            const verbMap = { ACCEPT: 'accepted', REJECT: 'rejected', REQUEST_REVIEW: 'flagged for review' } as const
+            const verb = verbMap[detail.action ?? 'ACCEPT']
+            const sink = detail.source === 'flowA' ? 'pushed to Officeworks CORE' : 'saved locally · export ready'
+            const toneMap = { ACCEPT: 'success', REJECT: 'error', REQUEST_REVIEW: 'info' } as const
+            addToast(toneMap[detail.action ?? 'ACCEPT'], `${detail.ackId} vs ${detail.poNumber} ${verb} · ${sink}`)
+            // Add card (prepend) si no existe ya en la lista
+            const alreadyExists = COMPARISON_DOCS.some(d => d.id === detail.ackId) || extraDocs.some(d => d.id === detail.ackId)
+            if (!alreadyExists) {
+                const newDoc: ComparisonDoc = {
+                    id: detail.ackId,
+                    vendor: detail.vendor ?? 'Vendor',
+                    type: 'Acknowledgment',
+                    name: `${detail.ackId}_${(detail.vendor ?? 'Vendor').replace(/\s/g, '')}.pdf`,
+                    relatedPo: detail.poNumber,
+                    status: detail.action === 'ACCEPT' ? 'Reviewed' : detail.action === 'REJECT' ? 'Discrepancy' : 'Pending',
+                    reviewStatus: detail.action === 'ACCEPT' ? 'Reviewed' : 'Pending For Review',
+                    date: 'today',
+                    initials: (detail.vendor ?? 'V').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
+                    lineItems: detail.lineItems ?? 0,
+                    assigneeId: 'me',
+                }
+                setExtraDocs(prev => [newDoc, ...prev])
+            }
+            setActiveTab('ack')
+            setHighlightedAckId(detail.ackId)
+            const t = setTimeout(() => setHighlightedAckId(null), 5000)
+            return () => clearTimeout(t)
+        }
+        window.addEventListener('ack-vs-po:card-highlight', onHighlight)
+        window.addEventListener('ack-vs-po:compare-committed', onCommitted)
+        return () => {
+            window.removeEventListener('ack-vs-po:card-highlight', onHighlight)
+            window.removeEventListener('ack-vs-po:compare-committed', onCommitted)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const triggerToast = (title: string, description: string, type: 'success' | 'error' | 'info') =>
         addToast(type, `${title} · ${description}`)
 
-    const counts = useMemo(() => {
-        // DE1.18 · counts particionados por tipo (PO/ACK).
-        const po = COMPARISON_DOCS.filter(d => d.type === 'Purchase Order').length
-        const ack = COMPARISON_DOCS.filter(d => d.type === 'Acknowledgment').length
-        return { po, ack } as Record<'po' | 'ack', number>
-    }, [])
+    // ST-1169 · combined dataset · seed + cards net-new creadas por commits.
+    const allDocs = useMemo(() => [...extraDocs, ...COMPARISON_DOCS], [extraDocs])
 
-    const filtered = useMemo(() => COMPARISON_DOCS.filter(d => {
+    const counts = useMemo(() => {
+        const po = allDocs.filter(d => d.type === 'Purchase Order').length
+        const ack = allDocs.filter(d => d.type === 'Acknowledgment').length
+        return { po, ack } as Record<'po' | 'ack', number>
+    }, [allDocs])
+
+    const filtered = useMemo(() => allDocs.filter(d => {
         // DE1.18 · filtro por tipo (PO/ACK) en vez de status.
         const wantType: CompareDocType = activeTab === 'po' ? 'Purchase Order' : 'Acknowledgment'
         const matchesTab = d.type === wantType
         const q = query.trim().toLowerCase()
         const matchesSearch = !q || d.vendor.toLowerCase().includes(q) || d.id.toLowerCase().includes(q) || (d.relatedPo?.toLowerCase().includes(q) ?? false)
         return matchesTab && matchesSearch
-    }), [activeTab, query])
+    }), [activeTab, query, allDocs])
+
+    // ST-1169 · Flow C · Diego 2026-09-11 · derived state para el hint "Pull PO from CORE".
+    // Muestra el hint solo cuando el query parece un PO number Y no hay match local.
+    const isPoPattern = PO_PATTERN.test(query.trim())
+    const normalizedPo = normalizePo(query)
+    const showPullHint = isPoPattern && filtered.length === 0
+
+    // ST-1169 · Flow C · Diego 2026-09-11 · handler para el pull-from-CORE click.
+    // Reverse lookup en COMPARISON_DOCS_ALL para encontrar el ACK relacionado
+    // (si existe en el mock). Si no, sintetiza uno con timestamp.
+    // Dispatcha `ack-vs-po:start-compare` (mismo event que Flow A) · reusa
+    // el processing modal + ComparisonReviewModal sin cambios.
+    const handlePullFromCore = () => {
+        const matchingPo = COMPARISON_DOCS_ALL.find(
+            d => d.type === 'Purchase Order' && d.id.toUpperCase() === normalizedPo
+        )
+        const ackId = matchingPo?.relatedPo ?? `ACK-LOOKUP-${Date.now()}`
+        const vendor = matchingPo?.vendor ?? 'Unknown vendor'
+        window.dispatchEvent(new CustomEvent('ack-vs-po:start-compare', {
+            detail: { poNumber: normalizedPo, ackId, vendor, source: 'search-lookup' },
+        }))
+        setQuery('')
+    }
 
     const openCompare = (d: ComparisonDoc) => setCompareDoc(d)
     const openResolve = (d: ComparisonDoc) => setResolveDoc({ id: d.id, name: d.id, vendor: d.vendor, inconsistencyCount: 3 })
 
     return (
         <div className="min-h-screen bg-background font-sans text-foreground pb-10">
-            <Navbar onLogout={onLogout} activeTab="Comparisons" onNavigateToWorkspace={() => onNavigate('comparisons')} onNavigate={onNavigate} leftSlot={<InlineExperienceSwitcher />} />
+            {!hideNavbar && (
+                <Navbar onLogout={onLogout} activeTab="Comparisons" onNavigateToWorkspace={() => onNavigate('comparisons')} onNavigate={onNavigate} leftSlot={navbarSwitcher ? <InlineExperienceSwitcher /> : undefined} hiddenTabs={navbarHiddenTabs} tabBadges={navbarTabBadges} />
+            )}
 
-            {/* DE1.7 · Diego 2026-09-02 · breadcrumb debajo del navbar (alineado con gostrata.app premain). */}
-            <div className="pt-24 px-4 max-w-screen-2xl mx-auto">
+            {/* DE1.7 · Diego 2026-09-02 · breadcrumb debajo del navbar (alineado con gostrata.app premain).
+                ST-1169 Fase 1 fix · Diego 2026-09-09 · cuando hideNavbar,
+                el consumer maneja su propio spacing → usar pt-4 en vez de
+                pt-24 (que reserva el Navbar fixed interno). */}
+            <div className={`${hideNavbar ? 'pt-4' : 'pt-24'} px-4 max-w-screen-2xl mx-auto`}>
                 <div className="text-xs">
                     <Breadcrumbs items={[
                         { label: 'Expert Hub', onClick: () => onNavigate('ocr-tracking') },
@@ -174,6 +302,9 @@ export default function Comparisons({ onLogout, onNavigate }: ComparisonsProps) 
             </div>
 
             <div className="pt-4 px-4 max-w-screen-2xl mx-auto space-y-6">
+                {/* ST-1169 Fase 1.A (relocated) · Diego 2026-09-09 · slot
+                    para banner de notif · vive arriba del comparisons card. */}
+                {notifBanner}
                 <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
                     {/* Header: title + funnel + search + view toggle */}
                     <div className="p-6 border-b border-border">
@@ -205,17 +336,40 @@ export default function Comparisons({ onLogout, onNavigate }: ComparisonsProps) 
                             </div>
 
                             <div className="flex items-center gap-3 flex-wrap">
-                                <div className="relative flex-1 max-w-sm min-w-[220px]">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <input
-                                        type="text"
-                                        value={query}
-                                        onChange={e => setQuery(e.target.value)}
-                                        placeholder="Search comparisons…"
-                                        className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
-                                    />
+                                {/* ST-1169 · Flow C · wrapper para stackear el "Pull from CORE" hint
+                                    debajo del search input cuando el user pastea un PO number. */}
+                                <div className="flex-1 max-w-sm min-w-[220px] flex flex-col gap-1.5">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <input
+                                            type="text"
+                                            value={query}
+                                            onChange={e => setQuery(e.target.value)}
+                                            placeholder="Search or paste PO number…"
+                                            className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                        />
+                                    </div>
+                                    {showPullHint && (
+                                        <button
+                                            type="button"
+                                            onClick={handlePullFromCore}
+                                            title={`Pull ${normalizedPo} from Officeworks CORE and open compare`}
+                                            className="inline-flex items-center gap-1.5 self-start text-xs font-semibold px-2 py-1 rounded-md bg-primary/15 text-foreground hover:bg-primary/25 border border-primary/40 transition-colors"
+                                        >
+                                            <Cloud className="h-3.5 w-3.5 text-foreground" />
+                                            Pull {normalizedPo} from Officeworks CORE →
+                                        </button>
+                                    )}
                                 </div>
-                                <div className="ml-auto flex items-center border border-border rounded-lg overflow-hidden">
+                                {/* ST-1169 Fase 1.B (integrado) · Diego 2026-09-09 ·
+                                    slot para el intake Flow B (dropzone/botón),
+                                    a la izquierda del view toggle. */}
+                                {intakeSlot && (
+                                    <div className="ml-auto flex items-center">
+                                        {intakeSlot}
+                                    </div>
+                                )}
+                                <div className={`${intakeSlot ? '' : 'ml-auto'} flex items-center border border-border rounded-lg overflow-hidden`}>
                                     <button onClick={() => setViewMode('list')} title="List view" aria-label="List view" className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted'}`}>
                                         <List className="h-4 w-4" />
                                     </button>
@@ -244,19 +398,30 @@ export default function Comparisons({ onLogout, onNavigate }: ComparisonsProps) 
                             // sub-iconos reconcile/discrepancy · match visual con
                             // OcrDocCard + 1 icono compare adicional per Diego.
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
-                                {filtered.map(d => (
-                                    <ComparisonDocCard
-                                        key={d.id}
-                                        doc={d}
-                                        onCompare={() => openCompare(d)}
-                                        onPreview={() => addToast('info', `Preview ${d.id} (stub)`)}
-                                        onDelete={() => addToast('info', `Delete ${d.id} (stub)`)}
-                                        onSend={() => addToast('info', `Send ${d.id} (stub)`)}
-                                        // DE1.19 · Diego 2026-09-03 · Compare solo en cards ACK
-                                        // (por ahora no en PO · el flujo se dispara desde ACK).
-                                        showCompare={d.type === 'Acknowledgment'}
-                                    />
-                                ))}
+                                {filtered.map(d => {
+                                    const isHighlighted = highlightedAckId === d.id
+                                    return (
+                                        <div
+                                            key={d.id}
+                                            // ST-1169 · Diego 2026-09-09 · ring lime + subtle
+                                            // scale/glow para reconocer la card recién comparada
+                                            // via notif Action Center (auto-clear 5s).
+                                            className={isHighlighted ? 'ring-2 ring-primary ring-offset-2 ring-offset-background rounded-2xl transition-all animate-in fade-in zoom-in-95 duration-300' : 'transition-all'}
+                                            ref={isHighlighted ? (el) => { el?.scrollIntoView({ behavior: 'smooth', block: 'center' }) } : undefined}
+                                        >
+                                            <ComparisonDocCard
+                                                doc={d}
+                                                onCompare={() => openCompare(d)}
+                                                onPreview={() => addToast('info', `Preview ${d.id} (stub)`)}
+                                                onDelete={() => addToast('info', `Delete ${d.id} (stub)`)}
+                                                onSend={() => addToast('info', `Send ${d.id} (stub)`)}
+                                                // DE1.19 · Diego 2026-09-03 · Compare solo en cards ACK
+                                                // (por ahora no en PO · el flujo se dispara desde ACK).
+                                                showCompare={d.type === 'Acknowledgment'}
+                                            />
+                                        </div>
+                                    )
+                                })}
                             </div>
                         ) : (
                             /* ── List (table) ── */
@@ -326,13 +491,20 @@ export default function Comparisons({ onLogout, onNavigate }: ComparisonsProps) 
                                                                     <GitCompare className="h-4 w-4" />
                                                                 </button>
                                                             )}
-                                                            <button onClick={() => setIsReconciliationOpen(true)} title="Reconcile PO vs ACK" className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                                                                <FileSearch className="h-4 w-4" />
-                                                            </button>
-                                                            {d.status === 'Discrepancy' && (
-                                                                <button onClick={() => openResolve(d)} title="Resolve discrepancies" className="p-1.5 rounded-md text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/15 transition-colors">
-                                                                    <AlertTriangle className="h-4 w-4" />
-                                                                </button>
+                                                            {/* ST-1169 Fase 1.D · Diego 2026-09-09 · legacy triggers
+                                                                gated · Reconcile + Resolve modales compiten con el
+                                                                flujo canónico del ACK vs PO. */}
+                                                            {!disableLegacyModals && (
+                                                                <>
+                                                                    <button onClick={() => setIsReconciliationOpen(true)} title="Reconcile PO vs ACK" className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                                                                        <FileSearch className="h-4 w-4" />
+                                                                    </button>
+                                                                    {d.status === 'Discrepancy' && (
+                                                                        <button onClick={() => openResolve(d)} title="Resolve discrepancies" className="p-1.5 rounded-md text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/15 transition-colors">
+                                                                            <AlertTriangle className="h-4 w-4" />
+                                                                        </button>
+                                                                    )}
+                                                                </>
                                                             )}
                                                         </div>
                                                         {/* DE1.21 · avatar reviewer · match prod. Reusa TEAM_MEMBERS · fallback 'me'. */}
@@ -372,8 +544,15 @@ export default function Comparisons({ onLogout, onNavigate }: ComparisonsProps) 
                 }}
             />
 
-            <AckReconciliationModal isOpen={isReconciliationOpen} onClose={() => setIsReconciliationOpen(false)} triggerToast={triggerToast} />
-            <ResolveInconsistencyModal isOpen={!!resolveDoc} onClose={() => setResolveDoc(null)} document={resolveDoc} />
+            {/* ST-1169 Fase 1.D · Diego 2026-09-09 · legacy modales gated ·
+                cuando el consumer pasa disableLegacyModals=true no se
+                montan, evitando que compitan con el flujo canónico. */}
+            {!disableLegacyModals && (
+                <>
+                    <AckReconciliationModal isOpen={isReconciliationOpen} onClose={() => setIsReconciliationOpen(false)} triggerToast={triggerToast} />
+                    <ResolveInconsistencyModal isOpen={!!resolveDoc} onClose={() => setResolveDoc(null)} document={resolveDoc} />
+                </>
+            )}
 
             <ToastContainer toasts={toasts} onDismiss={dismissToast} />
         </div>
